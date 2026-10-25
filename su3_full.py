@@ -1,8 +1,8 @@
 """
-su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (steps 1 and 2 of su3/README.md "Open").
+su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (steps 1 and 2 of README.md "Open").
 
 Background: full 24-component homogeneous SU(3) YM, A[n, i, a] (n trajectory, i = 1..3 space, a = 1..8 colour),
-    H = 1/2 |P|^2 + V(A),  V = 1/4 F^a_ij F^a_ij,  F^a_ij = f^abc A_i^b A_j^c       (units g = M = 1, as ym/ and su3/)
+    H = 1/2 |P|^2 + V(A),  V = 1/4 F^a_ij F^a_ij,  F^a_ij = f^abc A_i^b A_j^c       (units g = M = 1, as hdym)
 with initial data on the Gauss shell  G^a = f^abc A_i^b P_i^c = 0  (conserved; monitored).
 
 Two tangent vectors ride along each trajectory, both 24-d:
@@ -14,7 +14,7 @@ Linearising H = 1/2|P|^2 - 1/2|W|^2 + V(q) + w.gradV(q) - 1/2|w|^2 about w = W =
 
 Integrator: Yoshida-4 for (A, P) and both tangents together; per-trajectory sub-stepping
     nsub = ceil(omega dt / omega_dt_max),  omega = max(1, max_i |A_i|)  (|A_i| = colour norm)
-the same rule as ym/hdym_core.ym_step_substepped (omega >= 1 resolves the ghost's unit mass).
+the same rule as hdym_core.ym_step_substepped (omega >= 1 resolves the ghost's unit mass).
 
 Backends (--backend):
     numpy : CPU. With --workers K the ensemble is split into K independent processes (one core each).
@@ -23,10 +23,10 @@ Backends (--backend):
 Output (--out DIR): DIR/su3_full.csv (one row per energy), DIR/lam_E<E>.npz (per-trajectory finite-time
 exponents and the running-mean history for convergence checks), and progress lines on stdout.
 
-Examples (see su3/README.md for the run plan):
-    python su3/su3_full.py --selftest
-    python su3/su3_full.py --E 1.0 --N 2000 --tmax 500 --backend numpy --workers 20 --out su3/results/full_smoke
-    python su3/su3_full.py --E 1.0 0.5 0.3 --N 100000 --tmax 4000 --backend cupy --out su3/results/full_gpu
+Examples (see README.md for the run plan):
+    python su3_full.py --selftest
+    python su3_full.py --E 1.0 --N 2000 --tmax 500 --backend numpy --workers 20 --out results/full_smoke
+    python su3_full.py --E 1.0 0.5 0.3 --N 100000 --tmax 4000 --backend cupy --out results/full_gpu
 """
 import argparse, csv, os, sys, time
 import numpy as np
@@ -281,7 +281,7 @@ def main():
     ap.add_argument('--renorm', type=int, default=20)
     ap.add_argument('--omega-dt-max', type=float, default=0.25)
     ap.add_argument('--seed', type=int, default=11)
-    ap.add_argument('--out', default=os.path.join('su3', 'results', 'full'))
+    ap.add_argument('--out', default=os.path.join('results', 'full'))
     ap.add_argument('--quiet', action='store_true')
     a = ap.parse_args()
     if a.selftest:

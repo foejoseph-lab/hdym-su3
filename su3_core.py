@@ -1,7 +1,7 @@
 """
 su3_core.py -- homogeneous SU(3) Yang-Mills potential, units g = 1.
 
-Same conventions as ym/hdym_derive.py:  L = -1/4 F^a F^a,  F^a_ij = f^abc A_i^b A_j^c
+Same conventions as hdym ym/hdym_derive.py:  L = -1/4 F^a F^a,  F^a_ij = f^abc A_i^b A_j^c
 for spatially homogeneous fields, so
 
     V(A) = 1/4 sum_{i,j,a} (F^a_ij)^2 ,     A has shape (..., 3, 8)  [space i, colour a]
@@ -10,7 +10,7 @@ With f = Gell-Mann structure constants (T^a = lambda^a / 2, [T^a,T^b] = i f^abc 
 
 Isospin embedding: A_i^a = delta_i^a q_i for a in {1,2,3}, zero otherwise.
 Since f^{abc} = eps^{abc} on {1,2,3}, this reproduces the SU(2) model
-V = 1/2 (x^2 y^2 + y^2 z^2 + z^2 x^2) of ym/hdym_core.py exactly.
+V = 1/2 (x^2 y^2 + y^2 z^2 + z^2 x^2) of hdym_core.py exactly.
 """
 import numpy as np
 

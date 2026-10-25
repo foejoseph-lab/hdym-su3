@@ -15,7 +15,7 @@ If 'phys' equals 'raw', the escape lives in the physical sector.
 """
 import sys, os, argparse, time
 import numpy as np
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ym'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hdym_core as su2
 from doublet import M_dot
 

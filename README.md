@@ -1,15 +1,17 @@
-# su3/ — the colour-diagonal sector inside SU(3): the isospin embedding, the doublet, and an escape that is not the ghost's
+# lw-ym-su3 — Lee–Wick Yang–Mills mechanics moved up to SU(3): the isospin embedding, the doublet, and an escape that is not the ghost's
 
-Work of 24 Oct 2026, on the branch `su3-isospin` only; `main` is the SU(2) project and does not contain this folder.
-The question is the paper's "move up to another matrix group": embed the 12-d system of `ym/` in homogeneous SU(3)
-Lee–Wick Yang–Mills and ask what the new directions do. Units g = M = 1 and the conventions of `ym/hdym_derive.py`
-(L = −¼F² + (1/2M²)(DF)², F^a_ij = f^abc A_i^b A_j^c). The code imports `ym/hdym_core.py` read-only and changes
-nothing outside this folder.
+A separate project from [hdym](https://github.com/foejoseph-lab/hdym) (the SU(2) paper, *The Lee–Wick ghost of
+Yang–Mills mechanics is unstable at every energy*), started 24 Oct 2026 as hdym's `su3/` folder and moved here with its
+history so that the SU(2) project stays SU(2). The question is the paper's "move up to another matrix group": embed
+hdym's 12-d colour-diagonal SU(2) system in homogeneous SU(3) Lee–Wick Yang–Mills and ask what the new directions do.
+Units g = M = 1 and hdym's conventions (L = −¼F² + (1/2M²)(DF)², F^a_ij = f^abc A_i^b A_j^c). The SU(2) model is
+`hdym_core.py`, a verbatim copy of hdym's `hdym_core.py` at commit 1d65e30 (header says so); this repository needs
+nothing else from hdym. Python ≥ 3.10 with numpy and scipy (sympy for `derive_doublet.py`, CuPy for GPU runs).
 
 ## Results
 
 **The embedding (exact).** With A_i^a = δ_i^a q_i for a ∈ {1, 2, 3} (Gell-Mann λ₁, λ₂, λ₃, the isospin subalgebra),
-the SU(3) potential and gradient equal `ym/hdym_core.V` and `gradV` to 10⁻¹⁴, and the gradient has no component off
+the SU(3) potential and gradient equal `hdym_core.V` and `gradV` to 10⁻¹⁴, and the gradient has no component off
 the embedded sector, so the sector is invariant (`check_embedding.py`, all 11 checks pass). The 24 × 24 Hessian on
 the sector is block-diagonal, adjoint (9) ⊕ doublet λ₄…λ₇ (12) ⊕ singlet λ₈ (3), with zero mixing; the singlet block
 is identically zero — λ₈ never feels the background.
@@ -26,7 +28,7 @@ against Hess V = diag(y² + z², …) + 2 [xy, …] for SU(2) (`doublet.py`). In
   for E ≥ 2 (SU(2): E ≥ ½); deep in a channel min eig M ≈ −2(y² + z²) against −3(y² + z²) for SU(2).
 
 **Transverse exponents (measured).** All four on the same pure-YM trajectories, N = 400, dt = 0.005 with the
-per-trajectory channel sub-stepping of `ym/hdym_core.ym_step_substepped`, no trajectory dropped, max |ΔE|/E ≤ 5.5 × 10⁻⁴
+per-trajectory channel sub-stepping of `hdym_core.ym_step_substepped`, no trajectory dropped, max |ΔE|/E ≤ 5.5 × 10⁻⁴
 (`transverse_su3.py`; `results/transverse_E1_E05.txt`, `results/transverse_E03.txt`):
 
 | E | in-sector YM chaos | doublet, pure YM | SU(2) ghost | doublet ghost |
@@ -56,7 +58,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 - The full-SU(3) ghost exponent above: code ready (`su3_full.py`, self-test passes), production runs to be done on the
   author's machine — see "Full SU(3): run plan" below. No full-SU(3) numbers are claimed here until those logs exist.
 - The ghost lines use the naive operator ẅ = −(1 + M)w, the level of the paper's diagonal ghost; the Lee–Wick
-  Gauss-law reduction of the doublet ghost (cf. `rabbit_holes/ym/` for the SU(2) off-diagonal block) is not done.
+  Gauss-law reduction of the doublet ghost (cf. hdym `rabbit_holes/ym/` for the SU(2) off-diagonal block) is not done.
 - The second SU(2) embedding (λ₂, λ₅, λ₇, embedding index 4) is not done.
 
 ## Files
@@ -75,10 +77,10 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 Run commands (two CPU cores, about 18, 11 and 23 minutes, and 4 minutes for the last):
 
 ```
-python su3/check_embedding.py
-python su3/transverse_su3.py --E 1.0 0.5 --N 400 --dt 0.005 --tmax 2000 --t-burn 100 --seed 1
-python su3/transverse_su3.py --E 0.3 --N 400 --dt 0.005 --tmax 4000 --t-burn 100 --seed 2
-python su3/doublet_physical.py --E 1.0 --N 300 --tmax 1000
+python check_embedding.py
+python transverse_su3.py --E 1.0 0.5 --N 400 --dt 0.005 --tmax 2000 --t-burn 100 --seed 1
+python transverse_su3.py --E 0.3 --N 400 --dt 0.005 --tmax 4000 --t-burn 100 --seed 2
+python doublet_physical.py --E 1.0 --N 300 --tmax 1000
 ```
 
 ## Full SU(3): run plan
@@ -89,23 +91,23 @@ and the ghost w'' = −(1 + Hess V)w (λ_ghost, the SU(3) analogue of the paper'
 Self-test: V, ∇V, Hess V agree with `su3_core.py` to 10⁻¹⁴; energy and Gauss conserved; the embedded SU(2) sector is
 invariant under the 24-d flow. dt = 0.01 and 0.005 agree within errors on identical trajectories.
 
-From the repository root, in order (each step tells you whether the next is worth it):
+From the repository folder, in order (each step tells you whether the next is worth it):
 
 ```
-python su3/su3_full.py --selftest
-python su3/su3_full.py --E 1.0 --N 2200 --tmax 300 --workers 22 --out su3/results/full_cpu_timing
-python su3/su3_full.py --E 1.0 --N 20000 --tmax 300 --backend cupy --out su3/results/full_gpu_timing
+python su3_full.py --selftest
+python su3_full.py --E 1.0 --N 2200 --tmax 300 --workers 22 --out results/full_cpu_timing
+python su3_full.py --E 1.0 --N 20000 --tmax 300 --backend cupy --out results/full_gpu_timing
 ```
 
-The last line needs CuPy (already there if `ym/hdym_gpu.py --backend cupy` runs) and is the first time the cupy path runs — it was written for the GPU but tested only through numpy. Compare its `wall=` with the CPU line's and use the faster
+The last line needs CuPy (already there if hdym's `ym/hdym_gpu.py --backend cupy` runs) and is the first time the cupy path runs — it was written for the GPU but tested only through numpy. Compare its `wall=` with the CPU line's and use the faster
 backend below. Production scan (CPU form shown; for the GPU replace `--workers 22` by `--backend cupy` and raise N):
 
 ```
-python su3/su3_full.py --E 1.0 0.5 0.3 --N 4400 --tmax 4000 --workers 22 --out su3/results/full_scan
-python su3/su3_full.py --E 0.2 0.1 --N 4400 --tmax 20000 --t-block 1000 --workers 22 --out su3/results/full_scan
+python su3_full.py --E 1.0 0.5 0.3 --N 4400 --tmax 4000 --workers 22 --out results/full_scan
+python su3_full.py --E 0.2 0.1 --N 4400 --tmax 20000 --t-block 1000 --workers 22 --out results/full_scan
 ```
 
-Each energy appends a row to `full_scan/su3_full.csv` and writes `lam_E<E>.npz` (per-trajectory exponents and the
+Each energy appends a row to `results/full_scan/su3_full.csv` and writes `lam_E<E>.npz` (per-trajectory exponents and the
 running-mean history: a λ still drifting in the progress lines needs a longer tmax). The ghost needs λ_ghost·tmax ≳ 20
 to be trustworthy; if the lower energies come out below ~10⁻³, double tmax before reading anything into the law.
 

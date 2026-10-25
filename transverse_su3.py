@@ -16,7 +16,7 @@ renormalisation every `renorm` steps; exponent = mean over trajectories of accum
 """
 import sys, os, time, argparse
 import numpy as np
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ym'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hdym_core as su2
 from doublet import M_dot
 
@@ -55,7 +55,7 @@ def run(E, N, dt, tmax, t_burn, renorm, seed, omega_dt_max=0.25):
         return p, P
 
     for s in range(1, nsteps + 1):
-        # per-trajectory channel sub-stepping, as ym/hdym_core.ym_step_substepped;
+        # per-trajectory channel sub-stepping, as hdym_core.ym_step_substepped;
         # omega >= 1 keeps the ghost's unit mass resolved too
         omega = np.maximum(np.max(np.abs(p), axis=1), 1.0)
         nsub = np.maximum(1, np.ceil(omega * dt / omega_dt_max)).astype(int)

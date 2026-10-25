@@ -3,7 +3,7 @@ check_embedding.py -- stage 1 checks for the SU(3) isospin embedding.
 
   1. f is totally antisymmetric and satisfies the Jacobi identity (Gell-Mann table typed in right).
   2. hessV_dot agrees with finite differences of gradV at a random SU(3) point.
-  3. On A = embed(q): V and grad V equal the SU(2) model in ym/hdym_core.py,
+  3. On A = embed(q): V and grad V equal the SU(2) model in hdym_core.py,
      and grad V has no component outside {lambda_1,2,3} x diagonal -> invariant submanifold.
   4. The 24x24 Hessian on the embedding is block diagonal:
         su(2) adjoint (9) + doublet lambda_4..7 (12) + singlet lambda_8 (3),
@@ -13,7 +13,7 @@ check_embedding.py -- stage 1 checks for the SU(3) isospin embedding.
 """
 import sys, os
 import numpy as np
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'ym'))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hdym_core as su2
 import su3_core as s3
 
