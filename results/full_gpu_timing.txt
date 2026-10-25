@@ -1,0 +1,5 @@
+C:\Users\Owner\AppData\Local\Programs\Python\Python312\python.exe: can't open file 'C:\\GitHub\\hdym-su3\\su3\\su3_full.py': [Errno 2] No such file or directory
+# su3_full: backend=cupy workers=1 N=20000 dt=0.01 tmax=300.0 t_burn=100.0 seed=11 out=su3\results\full_gpu_timing
+  E=1 t=    250.0  lam_ym=0.26221  lam_ghost=0.046660  wall=954s
+  E=1 t=    300.0  lam_ym=0.26235  lam_ghost=0.046659  wall=1145s
+E=1  lam_ym=0.26235 ± 0.00013  lam_ghost=0.046659 ± 0.000053  dropped=0  max|dE|/E=4.8e-06  max|dG|=2.7e-13  wall=1529s
