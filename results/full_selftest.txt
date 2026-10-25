@@ -1,0 +1,10 @@
+[OK ] V == su3_core.V: 1.42e-14
+[OK ] grad == su3_core.gradV: 1.07e-14
+[OK ] hvp == su3_core.hessV_dot: 1.07e-14
+[OK ] initial energy == E: 4.44e-16
+[OK ] initial Gauss G = 0: 3.89e-16
+[OK ] energy drift over t = 20 (rel): 6.80e-10
+[OK ] Gauss drift over t = 20: 5.51e-15
+[OK ] SU(2) sector invariant under the 24-d flow: 0.00e+00
+
+all checks passed

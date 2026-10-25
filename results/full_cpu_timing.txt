@@ -1,0 +1,4 @@
+# su3_full: backend=numpy workers=22 N=2200 dt=0.01 tmax=300.0 t_burn=100.0 seed=11 out=results\full_cpu_timing
+  [w0] E=1 t=    250.0  lam_ym=0.26163  lam_ghost=0.046269  wall=33s
+  [w0] E=1 t=    300.0  lam_ym=0.26238  lam_ghost=0.045837  wall=39s
+E=1  lam_ym=0.26184 ± 0.00040  lam_ghost=0.046613 ± 0.000161  dropped=0  max|dE|/E=4.5e-07  max|dG|=3.3e-13  wall=53s
