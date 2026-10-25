@@ -1,4 +1,4 @@
-# lw-ym-su3 — Lee–Wick Yang–Mills mechanics moved up to SU(3): the isospin embedding, the doublet, and an escape that is not the ghost's
+# hdym-su3 — Lee–Wick Yang–Mills mechanics moved up to SU(3): the isospin embedding, the doublet, and an escape that is not the ghost's
 
 A separate project from [hdym](https://github.com/foejoseph-lab/hdym) (the SU(2) paper, *The Lee–Wick ghost of
 Yang–Mills mechanics is unstable at every energy*), started 24 Oct 2026 as hdym's `su3/` folder and moved here with its

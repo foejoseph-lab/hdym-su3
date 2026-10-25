@@ -302,8 +302,8 @@ def main():
                 if new:
                     w.writeheader()
             w.writerow(row); fh.flush()
-            print(f"E={E:g}  lam_ym={row['lam_ym']:.5f} ± {row['lam_ym_sem']:.5f}  "
-                  f"lam_ghost={row['lam_ghost']:.6f} ± {row['lam_ghost_sem']:.6f}  "
+            print(f"E={E:g}  lam_ym={row['lam_ym']:.5f} +- {row['lam_ym_sem']:.5f}  "
+                  f"lam_ghost={row['lam_ghost']:.6f} +- {row['lam_ghost_sem']:.6f}  "
                   f"dropped={row['dropped']}  max|dE|/E={row['max_dE']:.1e}  max|dG|={row['max_dG']:.1e}  "
                   f"wall={row['wall_s']:.0f}s", flush=True)
 

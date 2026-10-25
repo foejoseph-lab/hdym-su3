@@ -88,7 +88,7 @@ def main(E, N, dt, tmax, t_burn, renorm, seed, odt=0.25):
     print(f'# E={E} N={N} dt={dt} tmax={tmax} seed={seed}')
     for k in tan:
         lam = logs[k] / T
-        print(f'  {k:6s} {lam.mean():.5f} ± {lam.std() / np.sqrt(N):.5f}   (/E^1/4 = {lam.mean() / E**0.25:.5f})')
+        print(f'  {k:6s} {lam.mean():.5f} +- {lam.std() / np.sqrt(N):.5f}   (/E^1/4 = {lam.mean() / E**0.25:.5f})')
     print(f'  max |G|/|tangent| on constrained vectors: {Gmax:.1e}')
 
 
