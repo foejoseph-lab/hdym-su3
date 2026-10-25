@@ -53,7 +53,8 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 
 ## Open
 
-- The full-SU(3) ghost exponent above (all pieces are in `su3_core.py`).
+- The full-SU(3) ghost exponent above: code ready (`su3_full.py`, self-test passes), production runs to be done on the
+  author's machine — see "Full SU(3): run plan" below. No full-SU(3) numbers are claimed here until those logs exist.
 - The ghost lines use the naive operator ẅ = −(1 + M)w, the level of the paper's diagonal ghost; the Lee–Wick
   Gauss-law reduction of the doublet ghost (cf. `rabbit_holes/ym/` for the SU(2) off-diagonal block) is not done.
 - The second SU(2) embedding (λ₂, λ₅, λ₇, embedding index 4) is not done.
@@ -68,6 +69,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `doublet.py` | the 3 × 3 doublet matrix M(q) |
 | `transverse_su3.py` | the four transverse exponents on shared trajectories (sub-stepped) |
 | `doublet_physical.py` | raw vs Gauss-constrained vs gauge-removed doublet exponent |
+| `su3_full.py` | generic 24-component SU(3) YM on the Gauss shell, with λ_YM and the full 24 × 24 ghost λ_ghost; `--backend numpy --workers K` (K cores) or `--backend cupy` (GPU); `--selftest` |
 | `results/` | the logs every number above is taken from |
 
 Run commands (two CPU cores, about 18, 11 and 23 minutes, and 4 minutes for the last):
@@ -78,6 +80,34 @@ python su3/transverse_su3.py --E 1.0 0.5 --N 400 --dt 0.005 --tmax 2000 --t-burn
 python su3/transverse_su3.py --E 0.3 --N 400 --dt 0.005 --tmax 4000 --t-burn 100 --seed 2
 python su3/doublet_physical.py --E 1.0 --N 300 --tmax 1000
 ```
+
+## Full SU(3): run plan
+
+`su3_full.py` evolves generic homogeneous SU(3) Yang–Mills (24 components, initial data projected onto the Gauss shell
+G = 0 and scaled to energy E exactly) with two 24-d tangent vectors: the YM tangent (λ_YM, scale-free, so ∝ E^{1/4})
+and the ghost w'' = −(1 + Hess V)w (λ_ghost, the SU(3) analogue of the paper's transverse exponent, naive operator).
+Self-test: V, ∇V, Hess V agree with `su3_core.py` to 10⁻¹⁴; energy and Gauss conserved; the embedded SU(2) sector is
+invariant under the 24-d flow. dt = 0.01 and 0.005 agree within errors on identical trajectories.
+
+From the repository root, in order (each step tells you whether the next is worth it):
+
+```
+python su3/su3_full.py --selftest
+python su3/su3_full.py --E 1.0 --N 2200 --tmax 300 --workers 22 --out su3/results/full_cpu_timing
+python su3/su3_full.py --E 1.0 --N 20000 --tmax 300 --backend cupy --out su3/results/full_gpu_timing
+```
+
+The last line needs CuPy (already there if `ym/hdym_gpu.py --backend cupy` runs) and is the first time the cupy path runs — it was written for the GPU but tested only through numpy. Compare its `wall=` with the CPU line's and use the faster
+backend below. Production scan (CPU form shown; for the GPU replace `--workers 22` by `--backend cupy` and raise N):
+
+```
+python su3/su3_full.py --E 1.0 0.5 0.3 --N 4400 --tmax 4000 --workers 22 --out su3/results/full_scan
+python su3/su3_full.py --E 0.2 0.1 --N 4400 --tmax 20000 --t-block 1000 --workers 22 --out su3/results/full_scan
+```
+
+Each energy appends a row to `full_scan/su3_full.csv` and writes `lam_E<E>.npz` (per-trajectory exponents and the
+running-mean history: a λ still drifting in the progress lines needs a longer tmax). The ghost needs λ_ghost·tmax ≳ 20
+to be trustworthy; if the lower energies come out below ~10⁻³, double tmax before reading anything into the law.
 
 The code and the derivations were developed in an interactive session with Claude (Anthropic); the judgement calls
 are the author's.
