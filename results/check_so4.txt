@@ -1,0 +1,16 @@
+[OK ] su2: antisymmetry + Jacobi: 0.00e+00
+[OK ] su3: antisymmetry + Jacobi: 1.11e-16
+[OK ] so4: antisymmetry + Jacobi: 0.00e+00
+[OK ] so4 = su2(+) + su2(-), each with g = sqrt2: 4.44e-16
+[OK ] ym_group su3 == su3_full (lam_ym, lam_ghost): 0.00e+00
+[OK ] su2 diagonal sector: V == hdym_core.V: 7.11e-15
+[OK ] su2 diagonal sector: grad == hdym_core.gradV: 3.55e-15
+[OK ] so4 split energies add up to H: 4.44e-16
+[OK ] each half conserves its own energy: half drift / total drift (t = 20): 9.97e-01
+[OK ] the test is not trivial: every trajectory shares energy, 1 / (min share of the smaller half): 1.12e+01
+[OK ] half-loaded SO(4) energy == E: 5.00e-16
+[OK ] should-match, YM tangent: |log-growth SO(4) - SU(2)| per trajectory (growth up to 14.5): 1.74e-09
+[OK ] should-match, ghost tangent: |log-growth SO(4) - SU(2)| per trajectory (growth up to 7.1): 4.46e-10
+[OK ] should-match, background: |A_SO(4) - embed(A_SU(2))|: 3.46e-10
+
+all checks passed

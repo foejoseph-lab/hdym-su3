@@ -72,6 +72,9 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `transverse_su3.py` | the four transverse exponents on shared trajectories (sub-stepped) |
 | `doublet_physical.py` | raw vs Gauss-constrained vs gauge-removed doublet exponent |
 | `su3_full.py` | generic 24-component SU(3) YM on the Gauss shell, with λ_YM and the full 24 × 24 ghost λ_ghost; `--backend numpy --workers K` (K cores) or `--backend cupy` (GPU); `--selftest` |
+| `groups.py` | structure constants for su2, su3, so4 in one convention, and the so(4) = su(2) ⊕ su(2) basis |
+| `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
+| `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
 | `results/` | the logs every number above is taken from |
 
 Run commands (two CPU cores, about 18, 11 and 23 minutes, and 4 minutes for the last):
@@ -81,6 +84,25 @@ python check_embedding.py
 python transverse_su3.py --E 1.0 0.5 --N 400 --dt 0.005 --tmax 2000 --t-burn 100 --seed 1
 python transverse_su3.py --E 0.3 --N 400 --dt 0.005 --tmax 4000 --t-burn 100 --seed 2
 python doublet_physical.py --E 1.0 --N 300 --tmax 1000
+```
+
+## SO(4): a should-match check
+
+so(4) = su(2) ⊕ su(2), each half with coupling g = √2 in the basis L± = (J ± K)/√2, so homogeneous SO(4) Yang–Mills is
+two decoupled SU(2) systems. Scaling g away (B = gA, same time, ghost mass unchanged), an SO(4) state with all its
+energy E in one half is a generic SU(2) state at energy 2E — background and both tangents. `check_so4.py` tests this
+and the rest of the group-general code; all 14 checks pass (`results/check_so4.txt`, 25 Oct, run on Claude's side):
+
+- f antisymmetric and Jacobi for su2, su3, so4; so(4) in the split basis is block-diag(√2 ε, √2 ε) to 4 × 10⁻¹⁶;
+- `ym_group.py --group su3` gives the same exponents as `su3_full.py`, bit for bit;
+- `--group su2` on the colour-diagonal sector gives hdym's V and ∇V (`hdym_core.py`) to 10⁻¹⁴;
+- generic SO(4): each half drifts by no more than the total energy (ratio 1.00 at t = 20, energy genuinely shared,
+  smaller half ≥ 9 %) — no exchange between the halves, only integration error (16 × smaller per halving of dt);
+- half-loaded SO(4) at E = 0.5 vs generic SU(2) at E = 1, 64 trajectories, t = 30: per-trajectory log-growth of the
+  YM tangent agrees to 2 × 10⁻⁹ (growth up to e^14.5), of the ghost tangent to 4 × 10⁻¹⁰, background to 3 × 10⁻¹⁰.
+
+```
+python check_so4.py
 ```
 
 ## Full SU(3): run plan
