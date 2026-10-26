@@ -8,7 +8,10 @@ groups.py, on the Gauss shell, with two tangents per trajectory:
     ym    : d'' = -Hess V(A) d            -> lambda_YM
     ghost : w'' = -(1 + Hess V(A)) w      -> lambda_ghost  (naive operator, no Lee-Wick Gauss-law reduction)
 Same initial data, Yoshida-4 integrator, sub-stepping rule, renormalisation and per-worker seeds as
-su3_full.py. For --group su3 the per-trajectory cumulative logs are bit-identical to su3_full.run_chunk
+su3_full.py. --L0 also projects the initial momenta onto zero spatial angular momentum L_i = eps_ijk A_j^a P_k^a
+(conserved). Each trajectory's exponents depend strongly on |L| (results/L_correlation.txt), so ensembles with
+and without --L0 are different ensembles; for su2, L = 0 with G = 0 is exactly hdym's colour-diagonal sector up
+to a fixed rotation, which makes --L0 the like-for-like setting for comparisons with hdym. For --group su3 the per-trajectory cumulative logs are bit-identical to su3_full.run_chunk
 (checked by --selftest), however the run is cut into segments and resumed.
 
 How a run proceeds (per energy):
@@ -86,13 +89,27 @@ class Model:
         return np.einsum('abc,nib,nic->na', self.f, A, P)
 
 
-def initial_state(f, N, E, seed):
-    """As su3_full.initial_state: random (A, P) projected onto G = 0, scaled exactly to energy E."""
+EPS3 = np.zeros((3, 3, 3))
+EPS3[0, 1, 2] = EPS3[1, 2, 0] = EPS3[2, 0, 1] = 1.0
+EPS3[0, 2, 1] = EPS3[2, 1, 0] = EPS3[1, 0, 2] = -1.0
+
+
+def angmom(A, P):
+    """Spatial angular momentum L_i = eps_ijk A_j^a P_k^a (conserved: V is rotation invariant), shape (N, 3)."""
+    return np.einsum('ijk,nja,nka->ni', EPS3, A, P)
+
+
+def initial_state(f, N, E, seed, L0=False):
+    """As su3_full.initial_state: random (A, P) projected onto G = 0, scaled exactly to energy E.
+    With L0, P is projected onto G = 0 and L = 0 together (both linear in P; the scaling keeps both zero).
+    Without it the arithmetic is exactly su3_full's (bit-identical, checked by --selftest)."""
     d = f.shape[0]
     rng = np.random.default_rng(seed)
     A = rng.standard_normal((N, 3, d))
     P = rng.standard_normal((N, 3, d))
     L = np.einsum('abc,nib->naic', f, A).reshape(N, d, 3 * d)
+    if L0:                                         # add the three rows dL_i/dP_k^a = eps_ijk A_j^a
+        L = np.concatenate([L, np.einsum('ijk,nja->nika', EPS3, A).reshape(N, 3, 3 * d)], axis=1)
     Pf = P.reshape(N, 3 * d, 1)
     LLt = L @ np.transpose(L, (0, 2, 1))
     corr = np.transpose(L, (0, 2, 1)) @ np.linalg.solve(LLt, L @ Pf)
@@ -198,7 +215,7 @@ def segment(job):
         logs = [z['L0'], z['L1']]
         s0, H0, G0 = int(z['s']), z['H0'], z['G0']
     else:
-        A, P = initial_state(f, N, E, seed)
+        A, P = initial_state(f, N, E, seed, p.get('L0', False))
         rng = np.random.default_rng(seed + 1)
         nothing = [[np.zeros_like(A), np.zeros_like(A)], [np.zeros_like(A), np.zeros_like(A)]]
         for _ in range(int(round(p['t_burn'] / dt))):
@@ -225,7 +242,8 @@ def segment(job):
                   s=np.int64(s1), H0=H0, G0=G0, params=np.array(_params_key(p)))
     H1 = 0.5 * np.sum(P * P, axis=(1, 2)) + m.V(A)
     G1 = np.max(np.abs(m.gauss(A, P)), axis=1)
-    return dict(s=s1, L0=logs[0].copy(), L1=logs[1].copy(), dE=np.abs(H1 - H0) / E, dG=np.abs(G1 - G0))
+    return dict(s=s1, L0=logs[0].copy(), L1=logs[1].copy(), dE=np.abs(H1 - H0) / E, dG=np.abs(G1 - G0),
+                Lmag=np.linalg.norm(angmom(A, P), axis=1))
 
 
 # ------------------------------------------------------------------ estimators
@@ -266,6 +284,8 @@ def run_energy(E, a, pool, run_id):
     tag = f'E{E:g}'
     mpath = os.path.join(ck, f'{tag}_master.npz')
     base = dict(group=a.group, E=E, dt=dt, odt=a.omega_dt_max, renorm=a.renorm, t_burn=a.t_burn)
+    if getattr(a, 'L0', False):
+        base['L0'] = True            # only when set, so checkpoints made before --L0 existed still resume
     jobs = [dict(group=a.group, ckpt=os.path.join(ck, f'{tag}_w{k:02d}.npz'),
                  params=dict(base, N=n, seed=a.seed + 1000 * k)) for k, n in enumerate(sizes)]
     master_key = _params_key(dict(base, N=a.N, workers=len(sizes), seed=a.seed))
@@ -309,6 +329,7 @@ def run_energy(E, a, pool, run_id):
         L0h.append(np.concatenate([p['L0'] for p in parts]))
         L1h.append(np.concatenate([p['L1'] for p in parts]))
         dE = np.concatenate([p['dE'] for p in parts]); dG = np.concatenate([p['dG'] for p in parts])
+        Lmag = np.concatenate([p['Lmag'] for p in parts])
         th = np.array(t_hist); L0a = np.array(L0h); L1a = np.array(L1h)
         good = np.isfinite(L0a[-1]) & np.isfinite(L1a[-1]) & np.isfinite(dE)
         est0, est1 = estimates(th, L0a, good), estimates(th, L1a, good)
@@ -338,12 +359,13 @@ def run_energy(E, a, pool, run_id):
     np.savez(os.path.join(a.out, f'lam_E{E:g}.npz'),
              lam_ym=L0a[-1] / T, lam_ghost=L1a[-1] / T,
              inc_ym=(L0a[-1] - L0a[h]) / (T - th[h]), inc_ghost=(L1a[-1] - L1a[h]) / (T - th[h]),
-             dE=dE, dG=dG, t=th, L_ym=L0a, L_ghost=L1a)
+             dE=dE, dG=dG, t=th, L_ym=L0a, L_ghost=L1a, Lmag=Lmag, ell=Lmag / E ** 0.75)
     return dict(run=run_id, group=a.group, E=E, N=a.N, dropped=a.N - int(good.sum()), t=T, dt=dt, reason=reason,
                 lam_ym_T=est0['lam_T'], lam_ym_inc=est0['lam_inc'], lam_ym_inc_sem=est0['sem_inc'],
                 lam_ghost_T=est1['lam_T'], lam_ghost_inc=est1['lam_inc'], lam_ghost_inc_sem=est1['sem_inc'],
                 b_ghost=est1['b'], lamT_ghost=est1['lam_inc'] * T,
-                max_dE=float(dE[good].max()), max_dG=float(dG[good].max()), wall_s=time.time() - t0)
+                max_dE=float(dE[good].max()), max_dG=float(dG[good].max()), L0=bool(getattr(a, 'L0', False)),
+                max_L=float(Lmag[good].max()), wall_s=time.time() - t0)
 
 
 # ------------------------------------------------------------------ self-test
@@ -459,8 +481,32 @@ def selftest():
         r = segment(job)
         rep('so4: energy drift over t = 20 (rel)', r['dE'].max(), 1e-4)
         rep('so4: Gauss drift over t = 20', r['dG'].max(), 1e-10)
+        for g in ('su3', 'su2'):
+            job = dict(group=g, ckpt=os.path.join(tmp, f'L{g}.npz'), s_end=2000,
+                       params=dict(group=g, E=0.4, N=16, seed=1, dt=0.01, odt=0.25, renorm=20, t_burn=1.0, L0=True))
+            r = segment(job)
+            rep(f'{g} --L0: |L| after t = 21 (projected to 0, conserved)', r['Lmag'].max(), 1e-10)
+            rep(f'{g} --L0: energy drift over t = 20 (rel)', r['dE'].max(), 1e-4)
+            rep(f'{g} --L0: Gauss drift over t = 20', r['dG'].max(), 1e-10)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
+    for g, f in (('su3', f3), ('su2', f2)):
+        A0, P0 = initial_state(f, 100, 0.4, 3, L0=True)
+        mm = Model(f)
+        rep(f'{g} --L0 initial data: |L|, |G|, |H - E|',
+            max(np.abs(angmom(A0, P0)).max(), np.abs(mm.gauss(A0, P0)).max(),
+                np.abs(0.5 * np.sum(P0 * P0, axis=(1, 2)) + mm.V(A0) - 0.4).max()), 1e-12)
+    A0, P0 = initial_state(f3, 100, 0.4, 3)
+    rep('without --L0 the initial |L| is generic (not projected): min |L|', -np.linalg.norm(angmom(A0, P0), axis=1).min(), -1e-3)
+    # su2 with G = 0 and L = 0 is the colour-diagonal sector in a fixed frame: A(t) = U diag(q(t)) V^T, U, V constant
+    A, P = initial_state(f2, 30, 0.4, 4, L0=True)
+    U, _, Vt = np.linalg.svd(A)
+    none = [[np.zeros_like(A), np.zeros_like(A)], [np.zeros_like(A), np.zeros_like(A)]]
+    for _ in range(2000):
+        A, P = _advance(m2, A, P, none, 0.01, 0.25)
+    D = np.transpose(U, (0, 2, 1)) @ A @ np.transpose(Vt, (0, 2, 1))
+    off = D - D * np.eye(3)
+    rep('su2 --L0 stays colour-diagonal in its initial frame over t = 20 (max off-diagonal)', np.abs(off).max(), 1e-9)
     print('\nall checks passed' if ok else '\nSOME CHECKS FAILED', flush=True)
     return ok
 
@@ -480,6 +526,8 @@ def main():
     ap.add_argument('--renorm', type=int, default=20)
     ap.add_argument('--omega-dt-max', type=float, default=0.25)
     ap.add_argument('--seed', type=int, default=11)
+    ap.add_argument('--L0', action='store_true',
+                    help='zero spatial angular momentum (for su2 this is exactly the colour-diagonal sector)')
     ap.add_argument('--out', default=os.path.join('results', 'run'))
     ap.add_argument('--resume', action='store_true', help='continue from checkpoints in --out')
     ap.add_argument('--no-stop', action='store_true', help='ignore the convergence stop; run to --tmax')
@@ -498,7 +546,7 @@ def main():
     t0 = time.time()
     print(f'# START ym_run run={run_id} group={a.group} E={" ".join(f"{e:g}" for e in a.E)} N={a.N} '
           f'workers={a.workers} dt={a.dt} tmax={a.tmax} t_burn={a.t_burn} t_seg={a.t_seg} seed={a.seed} '
-          f'resume={a.resume} stop={"off" if a.no_stop else f"lamT>={a.min_lamT:g},rel<={a.target_rel:g}"} '
+          f'L0={a.L0} resume={a.resume} stop={"off" if a.no_stop else f"lamT>={a.min_lamT:g},rel<={a.target_rel:g}"} '
           f'out={a.out}', flush=True)
     status, pool = 'OK', None
     try:
@@ -514,15 +562,19 @@ def main():
             if row is None:
                 continue
             new = not os.path.exists(path)
+            fields = list(row)
+            if not new:                      # an older file keeps its columns (new ones are in the npz and the log)
+                with open(path, newline='') as fh:
+                    fields = next(csv.reader(fh))
             with open(path, 'a', newline='') as fh:
-                w = csv.DictWriter(fh, fieldnames=list(row))
+                w = csv.DictWriter(fh, fieldnames=fields, extrasaction='ignore')
                 if new:
                     w.writeheader()
                 w.writerow(row)
             print(f"E={E:g} DONE ({row['reason']}) t={row['t']:g}  lam_ym_T={row['lam_ym_T']:.5f}  "
                   f"lam_ghost_inc={row['lam_ghost_inc']:.7f} +- {row['lam_ghost_inc_sem']:.7f}  "
                   f"lam_ghost_T={row['lam_ghost_T']:.7f}  b={row['b_ghost']:+.3f}  lamT={row['lamT_ghost']:.1f}  "
-                  f"dropped={row['dropped']}  max|dE|/E={row['max_dE']:.1e}  max|dG|={row['max_dG']:.1e}  "
+                  f"dropped={row['dropped']}  max|dE|/E={row['max_dE']:.1e}  max|dG|={row['max_dG']:.1e}  max|L|={row['max_L']:.1e}  "
                   f"wall={row['wall_s']:.0f}s", flush=True)
     except KeyboardInterrupt:
         status = 'INTERRUPTED'

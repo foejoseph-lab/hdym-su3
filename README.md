@@ -76,6 +76,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
 | `ym_run.py` | the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
+| `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `results/` | the logs every number above is taken from |
 
 Run commands (two CPU cores, about 18, 11 and 23 minutes, and 4 minutes for the last):
@@ -155,6 +156,18 @@ per-trajectory logs are bit-identical to `su3_full.py`'s, including across a kil
 python ym_run.py --selftest
 python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low
 python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low --resume
+```
+
+**Angular momentum.** The spatial angular momentum L_i = ε_ijk A_j^a P_k^a is conserved, and each trajectory's
+exponents depend strongly on it: in the first scan the rank correlation of |L| with λ_ghost is +0.40 to +0.69 and
+with λ_YM −0.88 to −0.96, and the 10 % of trajectories with the largest |L| carry a ghost rate 1.13–1.47 times the
+mean (`L_correlation.py`, `results/L_correlation.txt`). An ensemble average over L therefore depends on how L
+was sampled. `--L0` projects the initial data onto L = 0; for SU(2), G = 0 with L = 0 is exactly hdym's
+colour-diagonal sector in a fixed frame (checked by `--selftest` to 6 × 10⁻¹⁴), so `--L0` is the like-for-like
+setting for comparisons with hdym. The `run_low` scan is the generic-L ensemble.
+
+```
+python ym_run.py --group su3 --E 1 0.5 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --L0 --out results/run_L0
 ```
 
 The code and the derivations were developed in an interactive session with Claude (Anthropic); the judgement calls
