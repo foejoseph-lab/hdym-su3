@@ -59,6 +59,10 @@ def main():
             raise SystemExit(f'size mismatch at E={E:g}: {ell.size} recomputed vs {g.size} in the npz')
         if 'Lmag' in d.files:          # ym_run runs from the --L0 patch on store |L| at the end: cross-check
             print(f'   stored |L| vs recomputed: max diff {np.abs(d["Lmag"] / E ** 0.75 - ell).max():.1e}')
+        if 'L' in d.files:             # and, from 26 Oct, the signed vector
+            Lv = np.concatenate([np.asarray(ym_run.angmom(*ym_run.initial_state(f, n, E, a.seed + 1000 * k)))
+                                 for k, n in enumerate(sizes) if n])
+            print(f'   stored L vector vs recomputed: max diff {np.abs(d["L"] - Lv).max():.1e}')
         q = np.percentile(ell, edges)
         bins = [g[(ell >= q[i]) & (ell <= q[i + 1])].mean() / g.mean() for i in range(6)]
         print(f'{E:6g} {g.size:5d} {spearman(ell, g):+15.3f} {spearman(ell, y):+12.3f}   '

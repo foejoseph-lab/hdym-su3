@@ -214,6 +214,7 @@ def segment(job):
         tan = [[z['x0'], z['v0']], [z['x1'], z['v1']]]
         logs = [z['L0'], z['L1']]
         s0, H0, G0 = int(z['s']), z['H0'], z['G0']
+        G0v = z['G0v'] if 'G0v' in z else None     # checkpoints from before 26 Oct have only max|G0|
     else:
         A, P = initial_state(f, N, E, seed, p.get('L0', False))
         rng = np.random.default_rng(seed + 1)
@@ -226,7 +227,8 @@ def segment(job):
             nrm = np.sqrt(np.sum(x * x + v * v, axis=(1, 2)))[:, None, None]
             tan.append([x / nrm, v / nrm])
         H0 = 0.5 * np.sum(P * P, axis=(1, 2)) + m.V(A)
-        G0 = np.max(np.abs(m.gauss(A, P)), axis=1)
+        G0v = m.gauss(A, P)                         # full signed Gauss vector, (N, dim G)
+        G0 = np.max(np.abs(G0v), axis=1)
         logs = [np.zeros(N), np.zeros(N)]
         s0 = 0
     for s in range(s0 + 1, job['s_end'] + 1):
@@ -239,11 +241,17 @@ def segment(job):
                 tan[k] = [x / nrm[:, None, None], v / nrm[:, None, None]]
     s1 = max(s0, job['s_end'])
     _atomic_savez(path, A=A, P=P, x0=tan[0][0], v0=tan[0][1], x1=tan[1][0], v1=tan[1][1], L0=logs[0], L1=logs[1],
-                  s=np.int64(s1), H0=H0, G0=G0, params=np.array(_params_key(p)))
+                  s=np.int64(s1), H0=H0, G0=G0, params=np.array(_params_key(p)),
+                  **({} if G0v is None else {'G0v': G0v}))
     H1 = 0.5 * np.sum(P * P, axis=(1, 2)) + m.V(A)
     G1 = np.max(np.abs(m.gauss(A, P)), axis=1)
+    G1v = m.gauss(A, P)
+    Lv = angmom(A, P)
+    # signed values kept alongside the magnitudes: dE_signed = (H(t) - H0)/E, dG_vec = G(t) - G0 per colour,
+    # L = the conserved angular-momentum vector (N, 3)
     return dict(s=s1, L0=logs[0].copy(), L1=logs[1].copy(), dE=np.abs(H1 - H0) / E, dG=np.abs(G1 - G0),
-                Lmag=np.linalg.norm(angmom(A, P), axis=1))
+                Lmag=np.linalg.norm(Lv, axis=1), L=Lv, dE_signed=(H1 - H0) / E,
+                dG_vec=(G1v - G0v) if G0v is not None else np.full_like(G1v, np.nan))
 
 
 # ------------------------------------------------------------------ estimators
@@ -330,6 +338,8 @@ def run_energy(E, a, pool, run_id):
         L1h.append(np.concatenate([p['L1'] for p in parts]))
         dE = np.concatenate([p['dE'] for p in parts]); dG = np.concatenate([p['dG'] for p in parts])
         Lmag = np.concatenate([p['Lmag'] for p in parts])
+        Lvec = np.concatenate([p['L'] for p in parts])
+        dE_s = np.concatenate([p['dE_signed'] for p in parts]); dG_v = np.concatenate([p['dG_vec'] for p in parts])
         th = np.array(t_hist); L0a = np.array(L0h); L1a = np.array(L1h)
         good = np.isfinite(L0a[-1]) & np.isfinite(L1a[-1]) & np.isfinite(dE)
         est0, est1 = estimates(th, L0a, good), estimates(th, L1a, good)
@@ -359,7 +369,8 @@ def run_energy(E, a, pool, run_id):
     np.savez(os.path.join(a.out, f'lam_E{E:g}.npz'),
              lam_ym=L0a[-1] / T, lam_ghost=L1a[-1] / T,
              inc_ym=(L0a[-1] - L0a[h]) / (T - th[h]), inc_ghost=(L1a[-1] - L1a[h]) / (T - th[h]),
-             dE=dE, dG=dG, t=th, L_ym=L0a, L_ghost=L1a, Lmag=Lmag, ell=Lmag / E ** 0.75)
+             dE=dE, dG=dG, t=th, L_ym=L0a, L_ghost=L1a, Lmag=Lmag, ell=Lmag / E ** 0.75,
+             L=Lvec, dE_signed=dE_s, dG_vec=dG_v)
     return dict(run=run_id, group=a.group, E=E, N=a.N, dropped=a.N - int(good.sum()), t=T, dt=dt, reason=reason,
                 lam_ym_T=est0['lam_T'], lam_ym_inc=est0['lam_inc'], lam_ym_inc_sem=est0['sem_inc'],
                 lam_ghost_T=est1['lam_T'], lam_ghost_inc=est1['lam_inc'], lam_ghost_inc_sem=est1['sem_inc'],
@@ -488,6 +499,15 @@ def selftest():
             rep(f'{g} --L0: |L| after t = 21 (projected to 0, conserved)', r['Lmag'].max(), 1e-10)
             rep(f'{g} --L0: energy drift over t = 20 (rel)', r['dE'].max(), 1e-4)
             rep(f'{g} --L0: Gauss drift over t = 20', r['dG'].max(), 1e-10)
+        job = dict(group='su3', ckpt=os.path.join(tmp, 'sg.npz'), s_end=1000,
+                   params=dict(group='su3', E=0.4, N=16, seed=2, dt=0.01, odt=0.25, renorm=20, t_burn=1.0))
+        r1 = segment(job)
+        job['s_end'] = 2000
+        r2 = segment(job)                        # second segment: G0v read back from the checkpoint
+        A0, P0 = initial_state(f3, 16, 0.4, 2)
+        rep('signed outputs: |dE_signed| == dE, L vector == initial L (conserved), dG_vec finite and small',
+            max(np.abs(np.abs(r2['dE_signed']) - r2['dE']).max(), np.abs(r2['L'] - angmom(A0, P0)).max(),
+                np.abs(r2['dG_vec']).max() if np.isfinite(r2['dG_vec']).all() else 1.0), 1e-10)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for g, f in (('su3', f3), ('su2', f2)):
