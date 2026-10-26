@@ -13,6 +13,8 @@ check_embedding.py -- stage 1 checks for the SU(3) isospin embedding.
 """
 import sys, os
 import numpy as np
+import time
+_t0 = time.time()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hdym_core as su2
 import su3_core as s3
@@ -78,3 +80,4 @@ report('cross-block mixing (adjoint/doublet/singlet)', worst_mix, 1e-12)
 report('singlet block (lambda_8) identically zero', worst_singlet, 1e-12)
 
 print('\nall checks passed' if ok else '\nSOME CHECKS FAILED')
+print(f'# END check_embedding status={"OK" if ok else "FAIL"} wall={time.time() - _t0:.0f}s', flush=True)

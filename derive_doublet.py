@@ -1,6 +1,8 @@
 """derive_doublet.py -- closed form of the 12x12 doublet (lambda_4..7) Hessian block on the
 isospin embedding, by sympy; checked against su3_core.hessV numerically."""
 import numpy as np, sympy as sp
+import time
+_t0 = time.time()
 import su3_core as s3
 
 x, y, z = sp.symbols('x y z', real=True)
@@ -40,3 +42,4 @@ for _ in range(50):
     Hn = s3.hessV(s3.embed(qq))[np.ix_(idx, idx)]
     err = max(err, np.abs(np.array(f_num(*qq), float) - Hn).max())
 print('\nmax |sympy - numeric| =', err)
+print(f'# END derive_doublet status={"OK" if err < 1e-12 else "FAIL"} wall={time.time() - _t0:.0f}s', flush=True)

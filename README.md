@@ -75,6 +75,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `groups.py` | structure constants for su2, su3, so4 in one convention, and the so(4) = su(2) ⊕ su(2) basis |
 | `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
+| `ym_run.py` | the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
 | `results/` | the logs every number above is taken from |
 
 Run commands (two CPU cores, about 18, 11 and 23 minutes, and 4 minutes for the last):
@@ -132,6 +133,29 @@ python su3_full.py --E 0.2 0.1 --N 4400 --tmax 20000 --t-block 1000 --workers 22
 Each energy appends a row to `results/full_scan/su3_full.csv` and writes `lam_E<E>.npz` (per-trajectory exponents and the
 running-mean history: a λ still drifting in the progress lines needs a longer tmax). The ghost needs λ_ghost·tmax ≳ 20
 to be trustworthy; if the lower energies come out below ~10⁻³, double tmax before reading anything into the law.
+
+## Long runs: `ym_run.py`
+
+`su3_full.py` stays as the record of the first scan; new runs go through `ym_run.py`. For `--group su3` its
+per-trajectory logs are bit-identical to `su3_full.py`'s, including across a kill and `--resume` (checked by
+`--selftest`, `results/ym_run_selftest.txt`).
+
+- **Checkpoints.** The run is cut into segments of `--t-seg` (default 1000); each worker checkpoints to
+  `<out>/ckpt/` (git-ignored). A kill loses at most one segment; rerun the same command with `--resume`.
+  `--tmax` can be raised on a resume to lengthen a finished energy.
+- **Estimators.** Each segment prints λ_T = ⟨L(t)⟩/t (the `su3_full.py` estimator, which carries a start-up offset
+  b/t), λ_inc = ⟨L(t) − L(t/2)⟩/(t/2) (offset-free) with its SEM, and b from a straight-line fit over the second half.
+- **Convergence stop** on the ghost: λ_inc·t ≥ `--min-lamT` (20) and SEM/λ_inc ≤ `--target-rel` (1 %) at two
+  consecutive segment ends; otherwise it runs to `--tmax`. `--no-stop` disables it.
+- **Logs** start with `# START ym_run run=<id>` and end with `# END ym_run run=<id> status=OK|FAIL|INTERRUPTED`;
+  a log with no END line belongs to a process that died. Results: `<out>/ym_run.csv` (one row per finished energy)
+  and `<out>/lam_E<E>.npz` (per-trajectory exponents and the full L_i(t) history).
+
+```
+python ym_run.py --selftest
+python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low
+python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low --resume
+```
 
 The code and the derivations were developed in an interactive session with Claude (Anthropic); the judgement calls
 are the author's.

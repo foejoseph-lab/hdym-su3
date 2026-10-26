@@ -18,6 +18,8 @@ Checks:
 """
 import sys, os
 import numpy as np
+import time
+_t0 = time.time()
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import groups
 import ym_group as yg
@@ -147,4 +149,5 @@ for k, name in enumerate(('YM tangent', 'ghost tangent')):
 rep('should-match, background: |A_SO(4) - embed(A_SU(2))|', np.abs(s4[0] - embed_plus(s2[0])).max(), 1e-8)
 
 print('\nall checks passed' if ok else '\nSOME CHECKS FAILED')
+print(f'# END check_so4 status={"OK" if ok else "FAIL"} wall={time.time() - _t0:.0f}s', flush=True)
 sys.exit(0 if ok else 1)

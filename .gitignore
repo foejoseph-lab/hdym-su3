@@ -13,3 +13,7 @@ desktop.ini
 .idea/
 *.swp
 *~
+
+# ym_run.py working state (checkpoints; results are written beside them)
+ckpt/
+*.tmp.npz
