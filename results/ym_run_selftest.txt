@@ -50,6 +50,7 @@ E=0.5: resuming at t=20
 [OK ] su2 --L0: |L| after t = 21 (projected to 0, conserved): 6.78e-15
 [OK ] su2 --L0: energy drift over t = 20 (rel): 1.65e-07
 [OK ] su2 --L0: Gauss drift over t = 20: 3.52e-15
+[OK ] signed outputs: |dE_signed| == dE, L vector == initial L (conserved), dG_vec finite and small: 2.62e-15
 [OK ] su3 --L0 initial data: |L|, |G|, |H - E|: 2.78e-16
 [OK ] su2 --L0 initial data: |L|, |G|, |H - E|: 2.79e-15
 [OK ] without --L0 the initial |L| is generic (not projected): min |L|: -2.52e-02
