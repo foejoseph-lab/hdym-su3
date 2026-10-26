@@ -1,0 +1,59 @@
+# START ym_run selftest
+[OK ] su3 structure constants == su3_full: 0.00e+00
+[OK ] su3 V, grad, hvp bit-identical to su3_full.Model: 0.00e+00
+[OK ] su3 initial data bit-identical to su3_full: 0.00e+00
+[OK ] segmented/resumed ghost logs bit-identical to su3_full: 0.00e+00
+[OK ] segmented/resumed YM logs bit-identical to su3_full: 0.00e+00
+[OK ] re-running a finished segment changes nothing: 0.00e+00
+[OK ] worker checkpoint is not left open after a segment (Windows replace): 0.00e+00
+[OK ] checkpoint with different parameters is refused: 0.00e+00
+  E=0.5 t=         4  ym: T=0.23886 inc=nan  ghost: T=0.0220242 inc=nan +- nan (nan%)  b=+nan  lamT=   nan  max|dE|/E=2.8e-09  wall=0s
+  E=0.5 t=         8  ym: T=0.24786 inc=0.25687  ghost: T=0.0210824 inc=0.0201406 +- 0.0045725 (22.70%)  b=+0.008  lamT=   0.2  max|dE|/E=1.1e-08  wall=0s
+  E=0.5 t=        12  ym: T=0.25202 inc=0.26032  ghost: T=0.0179887 inc=0.0118015 +- 0.0043840 (37.15%)  b=+0.074  lamT=   0.1  max|dE|/E=1.5e-09  wall=1s
+  E=0.5 t=        16  ym: T=0.24109 inc=0.23432  ghost: T=0.0142824 inc=0.0074825 +- 0.0026218 (35.04%)  b=+0.115  lamT=   0.1  max|dE|/E=6.9e-09  wall=1s
+  E=0.5 t=        20  ym: T=0.23763 inc=0.21605  ghost: T=0.0138422 inc=0.0076225 +- 0.0012408 (16.28%)  b=+0.118  lamT=   0.2  max|dE|/E=5.4e-09  wall=1s
+E=0.5: resuming at t=20
+  E=0.5 t=        24  ym: T=0.23422 inc=0.21643  ghost: T=0.0126922 inc=0.0073956 +- 0.0017245 (23.32%)  b=+0.115  lamT=   0.2  max|dE|/E=5.5e-09  wall=0s
+  E=0.5 t=        28  ym: T=0.22859 inc=0.21192  ghost: T=0.0132717 inc=0.0119240 +- 0.0020672 (17.34%)  b=+0.044  lamT=   0.3  max|dE|/E=4.7e-09  wall=0s
+  E=0.5 t=        32  ym: T=0.23095 inc=0.22080  ghost: T=0.0142038 inc=0.0141252 +- 0.0018960 (13.42%)  b=-0.001  lamT=   0.5  max|dE|/E=2.8e-09  wall=1s
+  E=0.5 t=        36  ym: T=0.22816 inc=0.21633  ghost: T=0.0146890 inc=0.0157474 +- 0.0026620 (16.90%)  b=-0.070  lamT=   0.6  max|dE|/E=7.9e-09  wall=1s
+  E=0.5 t=        40  ym: T=0.22693 inc=0.21623  ghost: T=0.0137475 inc=0.0136527 +- 0.0019332 (14.16%)  b=-0.040  lamT=   0.5  max|dE|/E=1.7e-09  wall=1s
+  E=0.5 t=         4  ym: T=0.23886 inc=nan  ghost: T=0.0220242 inc=nan +- nan (nan%)  b=+nan  lamT=   nan  max|dE|/E=2.8e-09  wall=0s
+  E=0.5 t=         8  ym: T=0.24786 inc=0.25687  ghost: T=0.0210824 inc=0.0201406 +- 0.0045725 (22.70%)  b=+0.008  lamT=   0.2  max|dE|/E=1.1e-08  wall=0s
+  E=0.5 t=        12  ym: T=0.25202 inc=0.26032  ghost: T=0.0179887 inc=0.0118015 +- 0.0043840 (37.15%)  b=+0.074  lamT=   0.1  max|dE|/E=1.5e-09  wall=1s
+  E=0.5 t=        16  ym: T=0.24109 inc=0.23432  ghost: T=0.0142824 inc=0.0074825 +- 0.0026218 (35.04%)  b=+0.115  lamT=   0.1  max|dE|/E=6.9e-09  wall=1s
+  E=0.5 t=        20  ym: T=0.23763 inc=0.21605  ghost: T=0.0138422 inc=0.0076225 +- 0.0012408 (16.28%)  b=+0.118  lamT=   0.2  max|dE|/E=5.4e-09  wall=1s
+  E=0.5 t=        24  ym: T=0.23422 inc=0.21643  ghost: T=0.0126922 inc=0.0073956 +- 0.0017245 (23.32%)  b=+0.115  lamT=   0.2  max|dE|/E=5.5e-09  wall=1s
+  E=0.5 t=        28  ym: T=0.22859 inc=0.21192  ghost: T=0.0132717 inc=0.0119240 +- 0.0020672 (17.34%)  b=+0.044  lamT=   0.3  max|dE|/E=4.7e-09  wall=1s
+  E=0.5 t=        32  ym: T=0.23095 inc=0.22080  ghost: T=0.0142038 inc=0.0141252 +- 0.0018960 (13.42%)  b=-0.001  lamT=   0.5  max|dE|/E=2.8e-09  wall=2s
+  E=0.5 t=        36  ym: T=0.22816 inc=0.21633  ghost: T=0.0146890 inc=0.0157474 +- 0.0026620 (16.90%)  b=-0.070  lamT=   0.6  max|dE|/E=7.9e-09  wall=2s
+  E=0.5 t=        40  ym: T=0.22693 inc=0.21623  ghost: T=0.0137475 inc=0.0136527 +- 0.0019332 (14.16%)  b=-0.040  lamT=   0.5  max|dE|/E=1.7e-09  wall=2s
+[OK ] driver: tmax 20 then --resume to 40 == straight to 40: 0.00e+00
+[OK ] driver: lam_ghost_T matches: 0.00e+00
+[OK ] master checkpoint is not left open after a resume (Windows replace): 0.00e+00
+[OK ] existing checkpoints without --resume are refused: 0.00e+00
+[OK ] estimator: lam_inc on L = lam t + b: 0.00e+00
+[OK ] estimator: intercept b: 2.22e-15
+[OK ] estimator: lam_T carries b/t: 4.34e-19
+[OK ] su2: V on the diagonal == hdym V: 2.22e-16
+[OK ] su2: grad vs finite difference: 6.87e-09
+[OK ] su2: hvp vs finite difference: 3.43e-09
+[OK ] su2: initial energy == E: 2.22e-16
+[OK ] su2: initial Gauss G = 0: 9.85e-16
+[OK ] su2: energy drift over t = 20 (rel): 2.66e-07
+[OK ] su2: Gauss drift over t = 20: 5.42e-15
+[OK ] so4: energy drift over t = 20 (rel): 1.63e-08
+[OK ] so4: Gauss drift over t = 20: 3.53e-15
+[OK ] su3 --L0: |L| after t = 21 (projected to 0, conserved): 4.71e-15
+[OK ] su3 --L0: energy drift over t = 20 (rel): 3.86e-09
+[OK ] su3 --L0: Gauss drift over t = 20: 2.00e-15
+[OK ] su2 --L0: |L| after t = 21 (projected to 0, conserved): 6.78e-15
+[OK ] su2 --L0: energy drift over t = 20 (rel): 1.65e-07
+[OK ] su2 --L0: Gauss drift over t = 20: 3.52e-15
+[OK ] su3 --L0 initial data: |L|, |G|, |H - E|: 2.78e-16
+[OK ] su2 --L0 initial data: |L|, |G|, |H - E|: 2.79e-15
+[OK ] without --L0 the initial |L| is generic (not projected): min |L|: -2.52e-02
+[OK ] su2 --L0 stays colour-diagonal in its initial frame over t = 20 (max off-diagonal): 6.11e-14
+
+all checks passed
+# END ym_run selftest status=OK wall=8s

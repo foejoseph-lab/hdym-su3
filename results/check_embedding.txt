@@ -1,0 +1,14 @@
+[OK ] antisymmetry: 0.000e+00
+[OK ] Jacobi identity: 1.110e-16
+[OK ] adjoint Casimir = 3: 4.441e-16
+[OK ] Hv vs finite difference (rel): 2.589e-11
+[OK ] gradV vs finite difference (rel): 6.720e-11
+[OK ] V(embed q) - V_SU2(q): 7.105e-15
+[OK ] diag grad - gradV_SU2: 3.553e-15
+[OK ] grad off the embedded submanifold: 0.000e+00
+[OK ] su(2) diag 3x3 block == hdym_core Hess V: 0.000e+00
+[OK ] cross-block mixing (adjoint/doublet/singlet): 0.000e+00
+[OK ] singlet block (lambda_8) identically zero: 0.000e+00
+
+all checks passed
+# END check_embedding status=OK wall=0s
