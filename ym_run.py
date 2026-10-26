@@ -149,6 +149,33 @@ def _atomic_savez(path, **arrs):
     os.replace(tmp, path)
 
 
+def _load(path):
+    """Read every array of an .npz into memory and close the file. A bare np.load keeps the file open,
+    and Windows then refuses to replace it (PermissionError in os.replace)."""
+    with np.load(path) as z:
+        return {k: z[k] for k in z.files}
+
+
+def _held_open(path):
+    """True if this process still holds `path` open (Linux: /proc; elsewhere: try to move it)."""
+    target = os.path.realpath(path)
+    if os.path.isdir('/proc/self/fd'):
+        for fd in os.listdir('/proc/self/fd'):
+            try:
+                if os.path.realpath(os.readlink(f'/proc/self/fd/{fd}')) == target:
+                    return True
+            except OSError:
+                pass
+        return False
+    probe = path + '.probe'
+    try:
+        os.replace(path, probe)
+    except PermissionError:
+        return True
+    os.replace(probe, path)
+    return False
+
+
 def _params_key(p):
     return json.dumps(p, sort_keys=True)
 
@@ -162,7 +189,7 @@ def segment(job):
     E, N, seed, dt, odt, renorm = p['E'], p['N'], p['seed'], p['dt'], p['odt'], p['renorm']
     path = job['ckpt']
     if os.path.exists(path):
-        z = np.load(path)
+        z = _load(path)
         if str(z['params']) != _params_key(p):
             raise RuntimeError(f'checkpoint {path} was made with different parameters:\n  {z["params"]}\n'
                                f'  now {_params_key(p)}')
@@ -248,7 +275,7 @@ def run_energy(E, a, pool, run_id):
         raise RuntimeError(f'checkpoints for E={E:g} already exist in {ck}; add --resume to continue them, '
                            f'or choose a new --out')
     if os.path.exists(mpath):
-        z = np.load(mpath)
+        z = _load(mpath)
         if str(z['params']) != master_key:
             raise RuntimeError(f'{mpath} was made with different parameters:\n  {z["params"]}\n  now {master_key}')
         t_hist, L0h, L1h = list(z['t']), list(z['L0']), list(z['L1'])
@@ -361,6 +388,8 @@ def selftest():
         job['s_end'] = 1200
         r2 = segment(job)
         rep('re-running a finished segment changes nothing', np.abs(r2['L1'] - r['L1']).max(), 0)
+        rep('worker checkpoint is not left open after a segment (Windows replace)',
+            float(_held_open(job['ckpt'])), 0)
         bad = dict(job, params=dict(job['params'], dt=0.02))
         try:
             segment(bad); refused = 1.0
@@ -377,10 +406,12 @@ def selftest():
         run_energy(0.5, args(oa, 20.0, False), None, 'x')
         ra = run_energy(0.5, args(oa, 40.0, True), None, 'x')
         rb = run_energy(0.5, args(ob, 40.0, False), None, 'x')
-        za, zb = np.load(os.path.join(oa, 'lam_E0.5.npz')), np.load(os.path.join(ob, 'lam_E0.5.npz'))
+        za, zb = _load(os.path.join(oa, 'lam_E0.5.npz')), _load(os.path.join(ob, 'lam_E0.5.npz'))
         rep('driver: tmax 20 then --resume to 40 == straight to 40',
             max(np.abs(za['L_ghost'] - zb['L_ghost']).max(), np.abs(za['L_ym'] - zb['L_ym']).max()), 0)
         rep('driver: lam_ghost_T matches', abs(ra['lam_ghost_T'] - rb['lam_ghost_T']), 0)
+        rep('master checkpoint is not left open after a resume (Windows replace)',
+            float(_held_open(os.path.join(oa, 'ckpt', 'E0.5_master.npz'))), 0)
         try:
             run_energy(0.5, args(ob, 40.0, False), None, 'x'); refused = 1.0
         except RuntimeError:
