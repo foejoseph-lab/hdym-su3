@@ -76,6 +76,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
 | `ym_run.py` | the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
+| `lame_isotropic.py` | the naive ghost on SU(3)'s two isotropic orbits (λ = 1 isospin, λ = 1/2 real SO(3)) reduced to Lamé equations per Hessian eigen-family; windows, pure-YM limits, direct 24-d Floquet cross-check |
 | `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `results/` | the logs every number above is taken from |
 
@@ -168,6 +169,31 @@ setting for comparisons with hdym. The `run_low` scan is the generic-L ensemble.
 
 ```
 python ym_run.py --group su3 --E 1 0.5 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --L0 --out results/run_L0
+```
+
+## Isotropic orbits: the ghost as Lamé equations (`lame_isotropic.py`)
+
+The isotropic backgrounds of SU(N)-natural inflation, A_i = s(t)T_i with the T_i an SU(2) subalgebra, are
+straight-line orbits; in SU(3) there are two (λ = 1 on λ₁–λ₃, λ = 1/2 on λ₂, λ₅, λ₇). Along each, Hess V(sÂ) = s² Hess
+V(Â), so the naive ghost splits into one Lamé equation per eigen-family μ of Hess V(Â), with n(n+1) = 2μ/α and the
+ghost mass entering only the spectral parameter. Integer n is finite-gap (exactly n gaps). Results
+(`results/lame_isotropic.txt`, naive operator):
+
+- λ = 1: families n = −½ (×8, the doublet λ₄–λ₇), 0 (×8), 1 (×7), 2 (×1, radial). The radial window is SU(2)'s,
+  E ∈ (1/8, 1/6) (hdym `rabbit_holes/ym/code/rh5_lame.py`). The doublet is the only non-integer family and the only
+  one along which pure Yang–Mills itself is unstable; its ghost windows found are E ∈ (0.578, 0.678) and E > 118
+  (non-integer n also has infinitely many thinner tongues, below this search's resolution).
+- λ = 1/2: families n = 0 (×5), 1 (×15), 2 (×1), 3 (×3): entirely finite-gap. Radial window E ∈ (1/2, 2/3) (the
+  SU(2) window rescaled); n = 3: E ∈ (0.0962, 0.1) and E > 1.664. Pure Yang–Mills is stable or marginal along
+  every family.
+- Direct 24-d Floquet along the integrated orbit agrees with the family prediction at all 11 test energies.
+
+Caveat: the naive operator. The radial family does not involve the Lee–Wick Gauss term and stands; the n = 1
+families (E > 3/2 and E > 6) include off-diagonal-type directions, where on SU(2)'s x = y = z orbit the exact
+operator shows no instability up to E = 3 (hdym `RH5_nonplanar.md`), so they need the exact operator before any claim.
+
+```
+python lame_isotropic.py
 ```
 
 The code and the derivations were developed in an interactive session with Claude (Anthropic); the judgement calls
