@@ -11,7 +11,8 @@ Linearising H = 1/2|P|^2 - 1/2|W|^2 + V(q) + w.gradV(q) - 1/2|w|^2 about w = W =
 p- and w-perturbations, so each line above is exact at linear order. The ghost lines are the naive
 (un-gauge-reduced) operator, the same level as the paper's diagonal-sector ghost.
 
-Integrator: Yoshida-4 for (p, P) and all tangent vectors together, fixed dt; per-component
+Integrator: Yoshida-4 for (p, P) and all tangent vectors together, dt with per-trajectory channel
+sub-stepping (as hdym_core.ym_step_substepped, omega floored at 1); per-component
 renormalisation every `renorm` steps; exponent = mean over trajectories of accumulated log growth / time.
 """
 import sys, os, time, argparse

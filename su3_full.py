@@ -1,5 +1,6 @@
 """
-su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (steps 1 and 2 of README.md "Open").
+su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (the record of the first scan; README.md
+"Full SU(3): the first scan").
 
 Background: full 24-component homogeneous SU(3) YM, A[n, i, a] (n trajectory, i = 1..3 space, a = 1..8 colour),
     H = 1/2 |P|^2 + V(A),  V = 1/4 F^a_ij F^a_ij,  F^a_ij = f^abc A_i^b A_j^c       (units g = M = 1, as hdym)
@@ -14,7 +15,7 @@ Linearising H = 1/2|P|^2 - 1/2|W|^2 + V(q) + w.gradV(q) - 1/2|w|^2 about w = W =
 
 Integrator: Yoshida-4 for (A, P) and both tangents together; per-trajectory sub-stepping
     nsub = ceil(omega dt / omega_dt_max),  omega = max(1, max_i |A_i|)  (|A_i| = colour norm)
-the same rule as hdym_core.ym_step_substepped (omega >= 1 resolves the ghost's unit mass).
+hdym_core.ym_step_substepped's rule with omega floored at 1 (omega >= 1 resolves the ghost's unit mass).
 
 Backends (--backend):
     numpy : CPU. With --workers K the ensemble is split into K independent processes (one core each).

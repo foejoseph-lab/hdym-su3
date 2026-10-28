@@ -21,7 +21,7 @@ one-block estimate (mean over the three blocks, +- standard error over trajector
 estimate (what a single full tangent measures), their ratio, and the vector ghost.
 
     python su2_blocks.py --E 0.1 --tmax 18000 > results/su2_blocks.txt
-Single core, about 30 minutes at E = 0.1. Added 2026-10-27.
+Single core, about 45 minutes at E = 0.1 (the committed log: wall 2631 s). Added 2026-10-27.
 """
 import argparse, os, sys, time
 import numpy as np

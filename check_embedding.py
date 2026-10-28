@@ -8,8 +8,8 @@ check_embedding.py -- stage 1 checks for the SU(3) isospin embedding.
   4. The 24x24 Hessian on the embedding is block diagonal:
         su(2) adjoint (9) + doublet lambda_4..7 (12) + singlet lambda_8 (3),
      and the singlet block is identically zero.
-  5. Closed-form doublet block vs the numeric one, and its eigenvalues against the
-     SU(2) 3x3 Hessian that drives the paper's diagonal ghost.
+  5. (Not implemented here; listed until 28 Oct 2026. The closed-form doublet block is checked
+     against the numeric one in derive_doublet.py.)
 """
 import sys, os
 import numpy as np
