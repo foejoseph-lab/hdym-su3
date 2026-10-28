@@ -76,6 +76,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
 | `ym_run.py` | the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
+| `su2_blocks.py` | SU(2) at L = 0 with an independent integrator (DOP853) and the naive ghost split by sector: one off-diagonal block vs the max over blocks that a single full tangent measures |
 | `lame_isotropic.py` | the naive ghost on SU(3)'s two isotropic orbits (λ = 1 isospin, λ = 1/2 real SO(3)) reduced to Lamé equations per Hessian eigen-family; windows, pure-YM limits, direct 24-d Floquet cross-check |
 | `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `results/` | the logs every number above is taken from |
@@ -194,6 +195,48 @@ operator shows no instability up to E = 3 (hdym `RH5_nonplanar.md`), so they nee
 
 ```
 python lame_isotropic.py
+```
+
+## A single full tangent measures the fastest sector, not one sector (`su2_blocks.py`)
+
+`ym_run.py` follows one tangent through all components. In finite time it rides whichever sector is growing fastest on
+each trajectory, so its estimate is the expected **maximum** of the sectors' noisy finite-time exponents: biased upward.
+The exponents agree in the infinite-time limit (by ergodicity every block of a trajectory has the same exponent), but
+the bias fades slowly.
+
+Found on 27 Oct by a same-code check of hdym's SU(2) numbers. `ym_run.py --group su2 --L0 --E 0.1 --N 1100` gave
+λ_T = 1.804×10⁻³ at t = 20,000 against hdym's GPU kernel (`ym/hdym_rung1_gpu.py`, which follows **one** off-diagonal
+block) at 1.543×10⁻³ at the same t, flat at 1.514–1.543 for t = 15,000–30,000 (hdym
+`ym/data/results_rung1/history_E0.1_cj0.npy`). At E = 0.3 the same run matched hdym's vector ghost, which leads there,
+to 0.7 % (0.016394 against 0.016506, hdym `ym/data/transverse_E0.3.npz`). The run's files are in `results/su2_L0_check/`.
+
+`su2_blocks.py` integrates the first 50 trajectories of that run in their fixed diagonal frame with DOP853 (rtol
+10⁻¹⁰, energy drift ≤ 2.4×10⁻⁵), with separate tangents for the vector ghost and each off-diagonal block
+(`results/su2_blocks.txt`):
+
+| t | one block | max of three blocks | ratio |
+|---|---|---|---|
+| 9,000 | 1.692×10⁻³ ± 3.6×10⁻⁵ | 2.038×10⁻³ | 1.204 |
+| 18,000 | 1.641×10⁻³ ± 3.0×10⁻⁵ | 1.858×10⁻³ | 1.132 |
+
+- `ym_run.py`'s single tangent on the same trajectories tracks the max-of-blocks value (within about 2 % at t = 8,000;
+  a session check, not logged), so its integrator is not the cause.
+- The excess decays like t^(−1/2): the 1,100-trajectory run against the GPU gives +16.9 % at t = 20,000 and +15.5 % at
+  23,000, where t^(−1/2) predicts 15.8 %. At that rate it is still about 10 % at t = 40,000.
+- The one-block value is about 6 % above the GPU's at these times (1.641 against 1.543×10⁻³; about 3σ for 50
+  trajectories). The initial ensembles differ (`ym_run.py`'s L = 0 projection against the GPU's Gaussian diagonal
+  sampling), and the 1,100-trajectory run divided by this log's ratio (1.804/1.132 = 1.59×10⁻³) lands about 3 % above
+  the GPU. No sign of a kernel problem, but not an exact match either: a larger `su2_blocks.py` run (more trajectories)
+  would settle the remaining few per cent.
+- The vector ghost is slower at E = 0.1 (4.3×10⁻⁴), so the off-diagonal blocks lead there.
+
+**Consequence for SU(3).** The full-tangent λ_ghost values in `run_low` and `run_L0` carry the same kind of upward bias,
+of unknown size, probably larger with more sectors. Its direction leaves "SU(3) suppresses the low-E ghost more than
+SU(2)" intact, but the low-E slope (2.86 at L = 0) should not be quoted as final until the bias is measured by following
+sectors separately.
+
+```
+python su2_blocks.py --E 0.1 --tmax 18000
 ```
 
 The code and the derivations were developed in an interactive session with Claude (Anthropic); the judgement calls
