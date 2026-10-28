@@ -105,3 +105,4 @@ if __name__ == '__main__':
     t0 = time.time()
     main(a.E, a.N, a.dt, a.tmax, a.t_burn, a.renorm, a.seed)
     print(f'  wall {time.time() - t0:.0f}s')
+    print('# END doublet_physical status=OK')                            # END line added 28 Oct 2026

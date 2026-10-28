@@ -83,7 +83,7 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `ym_group.py` | **superseded by `ym_run.py`**, kept because `check_so4.py` and its log depend on it; `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
 | `ym_run.py` | **live engine**; the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
-| `su2_blocks.py` | SU(2) at L = 0 with an independent integrator (DOP853) and the naive ghost split by sector: one off-diagonal block vs the max over blocks that a single full tangent measures |
+| `su2_blocks.py` | **kept here by decision (28 Oct 2026)**: SU(2)-only, but it is the test of this repository's own `ym_run.py` that any later review needs; an exception to the placement rule (SU(2) work goes in hdym). SU(2) at L = 0 with an independent integrator (DOP853) and the naive ghost split by sector: one off-diagonal block vs the max over blocks that a single full tangent measures |
 | `lame_isotropic.py` | the naive ghost on SU(3)'s two isotropic orbits (λ = 1 isospin, λ = 1/2 real SO(3)) reduced to Lamé equations per Hessian eigen-family; windows, pure-YM limits, direct 24-d Floquet cross-check |
 | `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `results/` | the logs every number in this README is taken from, except those marked as not logged or not committed |
@@ -156,7 +156,9 @@ running-mean history: a λ still drifting in the progress lines needs a longer t
 to be trustworthy; if the lower energies come out below ~10⁻³, double tmax before reading anything into the law. The
 E = 0.1 row fails that rule (λ_T = 2.97×10⁻⁴ at t = 20,000: λ·t = 5.9, `results/full_scan.txt`); `run_low` supersedes it
 (2.949×10⁻⁴ at λ·t = 20.3, `results/run_low.txt`), and the two agree. That row also enters the |L| figures below.
-The first scan's logs have no END line (`su3_full.py` predates that convention).
+The first scan's logs have no END line (`su3_full.py` predates that convention and stays unchanged as the record;
+`ym_group.py` gets one if it is used again). `transverse_su3.py` and `doublet_physical.py` print one from 28 Oct 2026;
+their committed logs predate it.
 
 ## Long runs: `ym_run.py`
 

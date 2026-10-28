@@ -109,3 +109,4 @@ if __name__ == '__main__':
         res, dE, nbad = run(E, a.N, a.dt, a.tmax, a.t_burn, a.renorm, a.seed, a.omega_dt_max)
         print(f'  {E:6.3f} ' + ' '.join(f'{m:11.5f} +- {s:8.5f}' for m, s in res.values())
               + f'   {dE:.1e}  dropped={nbad}  {time.time() - t0:.0f}s', flush=True)
+    print('# END transverse_su3 status=OK', flush=True)                  # END line added 28 Oct 2026
