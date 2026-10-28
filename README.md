@@ -78,15 +78,20 @@ transverse exponent about generic SU(3) trajectories, with the full 24 × 24 ope
 | `doublet.py` | the 3 × 3 doublet matrix M(q) |
 | `transverse_su3.py` | the four transverse exponents on shared trajectories (sub-stepped) |
 | `doublet_physical.py` | raw vs Gauss-constrained vs gauge-removed doublet exponent |
-| `su3_full.py` | generic 24-component SU(3) YM on the Gauss shell, with λ_YM and the full 24 × 24 ghost λ_ghost; `--backend numpy --workers K` (K cores) or `--backend cupy` (GPU); `--selftest` |
+| `su3_full.py` | **record (frozen)** of the first scan; generic 24-component SU(3) YM on the Gauss shell, with λ_YM and the full 24 × 24 ghost λ_ghost; `--backend numpy --workers K` (K cores) or `--backend cupy` (GPU); `--selftest` |
 | `groups.py` | structure constants for su2, su3, so4 in one convention, and the so(4) = su(2) ⊕ su(2) basis |
-| `ym_group.py` | `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
+| `ym_group.py` | **superseded by `ym_run.py`**, kept because `check_so4.py` and its log depend on it; `su3_full.py` with the group as a parameter (`--group su2 / su3 / so4`); `--group su3` reproduces `su3_full.py` exactly |
 | `check_so4.py` | SO(4) as a should-match check of the group-general code (14 checks) |
-| `ym_run.py` | the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
+| `ym_run.py` | **live engine**; the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
 | `su2_blocks.py` | SU(2) at L = 0 with an independent integrator (DOP853) and the naive ghost split by sector: one off-diagonal block vs the max over blocks that a single full tangent measures |
 | `lame_isotropic.py` | the naive ghost on SU(3)'s two isotropic orbits (λ = 1 isospin, λ = 1/2 real SO(3)) reduced to Lamé equations per Hessian eigen-family; windows, pure-YM limits, direct 24-d Floquet cross-check |
 | `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `results/` | the logs every number in this README is taken from, except those marked as not logged or not committed |
+
+The three engines share their physics: `su3_full.py` is the record, `ym_group.py` the group-general step that
+`check_so4.py` tests, `ym_run.py` the one to use. The explanation of the two tangents and the naive operator is in
+"Full SU(3): the first scan" below; the scripts' docstrings repeat it (28 Oct 2026: listed for consolidation, not
+changed).
 
 Run commands (one process each; logged wall times: 18 + 11 min for the first transverse command (E = 1, 0.5), 23 min
 for the second, 4 min for the last):

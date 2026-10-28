@@ -24,7 +24,8 @@ Backends (--backend):
 Output (--out DIR): DIR/su3_full.csv (one row per energy), DIR/lam_E<E>.npz (per-trajectory finite-time
 exponents and the running-mean history for convergence checks), and progress lines on stdout.
 
-Examples (see README.md for the run plan):
+Examples (illustrative; full_smoke and full_gpu were never run -- the commands actually run are in README.md,
+"Full SU(3): the first scan"):
     python su3_full.py --selftest
     python su3_full.py --E 1.0 --N 2000 --tmax 500 --backend numpy --workers 20 --out results/full_smoke
     python su3_full.py --E 1.0 0.5 0.3 --N 100000 --tmax 4000 --backend cupy --out results/full_gpu
