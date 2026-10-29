@@ -38,7 +38,7 @@ Examples:
     python ym_run.py --selftest
     python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low
     python ym_run.py --group su3 --E 0.3 0.1 0.05 --N 1100 --workers 22 --tmax 600000 --out results/run_low --resume
-    (the commands of results/run_low.txt; README.md "Long runs")
+    (the commands of results/run_low.txt; notes/NOTE_full_su3.md, "Long runs")
 """
 import argparse, csv, json, os, sys, time, traceback
 import numpy as np

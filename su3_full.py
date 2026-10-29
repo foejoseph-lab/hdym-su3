@@ -1,6 +1,6 @@
 """
-su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (the record of the first scan; README.md
-"Full SU(3): the first scan").
+su3_full.py -- generic homogeneous SU(3) Yang-Mills and its Lee-Wick ghost (the record of the first scan; notes/NOTE_full_su3.md,
+"Full SU(3): the first scan"; README.md until 28 Oct 2026).
 
 Background: full 24-component homogeneous SU(3) YM, A[n, i, a] (n trajectory, i = 1..3 space, a = 1..8 colour),
     H = 1/2 |P|^2 + V(A),  V = 1/4 F^a_ij F^a_ij,  F^a_ij = f^abc A_i^b A_j^c       (units g = M = 1, as hdym)
@@ -24,8 +24,8 @@ Backends (--backend):
 Output (--out DIR): DIR/su3_full.csv (one row per energy), DIR/lam_E<E>.npz (per-trajectory finite-time
 exponents and the running-mean history for convergence checks), and progress lines on stdout.
 
-Examples (illustrative; full_smoke and full_gpu were never run -- the commands actually run are in README.md,
-"Full SU(3): the first scan"):
+Examples (illustrative; full_smoke and full_gpu were never run -- the commands actually run are in
+notes/NOTE_full_su3.md, "Full SU(3): the first scan"):
     python su3_full.py --selftest
     python su3_full.py --E 1.0 --N 2000 --tmax 500 --backend numpy --workers 20 --out results/full_smoke
     python su3_full.py --E 1.0 0.5 0.3 --N 100000 --tmax 4000 --backend cupy --out results/full_gpu

@@ -2,10 +2,11 @@
 su2_blocks_ensemble.py -- su2_blocks.py on all 1,100 initial conditions of results/su2_L0_check/, compared at
 matched t with that run's single full tangent.
 
-Why: su2_blocks.txt (50 trajectories, t <= 18,000) leaves two things open (README, "A single full tangent"):
+Why: su2_blocks.txt (50 trajectories, t <= 18,000) leaves two things open (notes/NOTE_single_tangent_bias.md):
   1. the one-block value sits about 6 % above hdym's GPU (1.641 against 1.543 x 10^-3), about 3 sigma for N = 50;
   2. whether lam_inc (what run_low and run_L0 report) carries the max-over-sectors bias or only lam_T does
-     (brief 5: lam_inc carries about half of lam_T's excess against the GPU, but that comparison mixes ensembles).
+     (results/su2_L0_check: lam_inc carries about half of lam_T's excess against the GPU, but that comparison mixes
+     ensembles).
 Running su2_blocks.py for each of ym_run's worker seeds (seed + 1000 k, k = 0..21, 50 trajectories each) puts the
 per-sector tangents on exactly ym_run's initial ensemble, to the same t = 47,000, so both are measured on one
 ensemble: one block against the GPU with a standard error about sqrt(22) smaller, and max-of-three-blocks against
