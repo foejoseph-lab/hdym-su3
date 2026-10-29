@@ -2,8 +2,8 @@
 
 Moved unchanged from `README.md` on 28 Oct 2026 (its history before that date is in `README.md`'s git log);
 only cross-references were updated, and the `results/su2_L0_check/` numbers were put in where the text
-said that run was not committed. Paths and commands are relative to the repository root. Conventions, including the claim notation and digits, are hdym's (its
-top-level `README.md`).
+said that run was not committed. Section "On one ensemble" added 29 Oct 2026. Paths and commands are relative to the
+repository root. Conventions, including the claim notation and digits, are hdym's (its top-level `README.md`).
 
 ## A single full tangent measures the fastest sector, not one sector (`su2_blocks.py`)
 
@@ -42,7 +42,8 @@ from `ym_run.py`'s, so the chaotic trajectories are not the same) in their fixed
   trajectories). The initial ensembles differ (`ym_run.py`'s L = 0 projection against the GPU's Gaussian diagonal
   sampling), and the 1,100-trajectory run divided by this log's ratio (1.804/1.132 = 1.59×10⁻³) lands about 3 % above
   the GPU. No sign of a kernel problem, but not an exact match either: a larger `su2_blocks.py` run (more trajectories)
-  would settle the remaining few per cent.
+  would settle the remaining few per cent. (29 Oct 2026: both figures compare λ_T with the GPU's offset-free slope.
+  With matching estimators the gap is about 1 %: "On one ensemble" below.)
 - The vector ghost is slower at E = 0.1 (4.3×10⁻⁴), so the off-diagonal blocks lead there.
 
 **The decay to t = 47,000** (`results/su2_L0_check/log.txt`, the E = 0.1 progress lines; added 28 Oct 2026). Excess of
@@ -63,19 +64,72 @@ the 1,100-trajectory full-tangent run over the GPU's one block, 1.543×10⁻³ a
 - At the stop, λ_T − λ_inc = 8.12×10⁻⁵ (1.7034×10⁻³ against 1.6222×10⁻³) and b/t = 3.969/47,000 = 8.44×10⁻⁵: the
   excess behaves as the growing offset b.
 - Part of each excess is the difference between the ensembles (`ym_run.py`'s L = 0 projection against the GPU's
-  sampling), not the estimator [est]. `su2_blocks_ensemble.py` (added 28 Oct 2026) runs `su2_blocks.py` on all 1,100
-  initial conditions of this run to t = 47,000 and compares at matched t on one ensemble; its output is
-  `results/su2_blocks_L0check.txt` once run.
+  sampling), not the estimator [est]. (29 Oct 2026: measured on one ensemble in the next section, which supersedes
+  this table's reading: λ_inc carries 0.57–0.74 of λ_T's excess there, and 5.8 % in absolute terms at t = 47,000.)
+
+## On one ensemble: all 1,100 initial conditions, per sector (`su2_blocks_ensemble.py`, 29 Oct 2026)
+
+`su2_blocks.py` run for each of `ym_run.py`'s 22 worker seeds (11 + 1000 k, 50 trajectories each), so the per-sector
+tangents start from exactly the initial ensemble of `results/su2_L0_check/`, to the same t = 47,000, and are compared
+at matched t with that run's full tangent (`results/su2_blocks_L0check.txt`; children's logs and npz in
+`results/su2_blocks_L0check/`; 22 of 22 OK, energy drift ≤ 3.3×10⁻⁴, 26,521 s on 16 workers). Different integrators
+(DOP853 against Yoshida-4), so ensembles are paired, not trajectories. "one" = mean over the three off-diagonal blocks,
+"full" = `ym_run.py`'s single tangent.
+
+**The GPU gap was the estimator.** hdym's GPU value is a least-squares slope of the log over the second half of the
+run (`ym/hdym_rung1_gpu.py`, `run_energy`), offset-free like λ_inc. The 6 % and 3 % above were λ_T against that slope.
+One block's λ_inc against the GPU at matched t (GPU from `history_E0.1_cj0.npy`):
+
+| t | one block, λ_inc | GPU | ratio | difference / combined SE |
+|---|---|---|---|---|
+| 20,000 | (1.5544 ± 0.0078)×10⁻³ | 1.5434×10⁻³ | 1.007 | 1.4 |
+| 25,000 | (1.5616 ± 0.0071)×10⁻³ | 1.5432×10⁻³ | 1.012 | 2.6 |
+| 30,000 | (1.5590 ± 0.0065)×10⁻³ | 1.5414×10⁻³ | 1.011 | 2.7 |
+
+- One block agrees with the GPU to about 1 % (λ_T would give +3.6 % at t = 20,000). No kernel problem at that level.
+  The rest is the ensembles (L = 0 projection, burn-in 100, against Gaussian sampling with burn-in 300 E^{−1/4}) or the
+  two offset-free estimators (two-point increment against a least-squares slope) [est]. The GPU's t = 15,000 row is its
+  first, with a short window, and is not compared.
+
+**The bias of the full tangent, same ensemble, matched t:**
+
+| t | full / one, λ_T | full / one, λ_inc | ratio of excesses | max of 3 / one, λ_T | full / max of 3, λ_T |
+|---|---|---|---|---|---|
+| 5,000 | +20.6 % | +14.8 % ± 2.1 % | 0.72 | +29.5 % | 0.931 |
+| 10,000 | +15.9 % | +11.0 % ± 1.3 % | 0.69 | +21.0 % | 0.958 |
+| 20,000 | +12.8 % | +9.5 % ± 1.0 % | 0.74 | +15.2 % | 0.979 |
+| 30,000 | +10.5 % | +6.4 % ± 0.8 % | 0.61 | +12.6 % | 0.982 |
+| 34,000 | +9.8 % | +5.6 % ± 0.7 % | 0.57 | +11.8 % | 0.983 |
+| 40,000 | +9.4 % | +5.8 % ± 0.7 % | 0.62 | +10.9 % | 0.986 |
+| 47,000 | +9.0 % | +5.8 % ± 0.7 % | 0.65 | +10.1 % | 0.989 |
+
+(± is the combined SE of the two λ_inc means; the λ_T ratios are tighter.)
+
+- **At the convergence stop (t = 47,000, λ_inc·t = 76) the λ_inc that `ym_run.py` reports is 5.8 % ± 0.7 % above
+  one sector's**: λ_inc 1.6222×10⁻³ against 1.5328×10⁻³ ± 0.0058×10⁻³. λ_T is 9.0 % above.
+- Fits over t ≥ 10,000 give excess ∝ t^(−0.42) for λ_T and t^(−0.62) for λ_inc [grid fit]; the λ_inc excess is flat
+  at 5.6–5.8 % from t = 34,000 to 47,000. The ratio of excesses, 0.57–0.74, brackets the √t-offset model's 0.59 at its
+  low end only.
+- The full tangent sits 1–2 % below the per-trajectory max over the three blocks for t ≥ 16,000 (0.979–0.989 [grid]),
+  which logs the "within about 2 %" of 27 Oct.
+- One sector has its own start-up offset: λ_T − λ_inc = 3.07×10⁻⁵ at t = 47,000 (b ≈ 1.4). And its λ_inc still falls,
+  1.5544 → 1.5328×10⁻³ from t = 20,000 to 47,000 (−1.4 %), so the one-sector limit is below 1.533×10⁻³ [est].
+- Vector ghost 4.333–4.357×10⁻⁴ for t ≥ 20,000.
 
 **Consequence for SU(3).** The full-tangent λ_ghost values in `run_low` and `run_L0` carry the same kind of upward bias,
 of unknown size, probably larger with more sectors. Its direction leaves "SU(3) suppresses the low-E ghost more than
 SU(2)" intact, but the low-E slope (2.86 at L = 0) should not be quoted as final until the bias is measured by following
 sectors separately.
 
+29 Oct 2026, from the section above: in SU(2) at L = 0, E = 0.1, the full tangent's λ_inc at the stop is 5.8 % ± 0.7 %
+too high, with three off-diagonal blocks and the vector ghost competing. That calibrates the SU(3) sector split, not
+the SU(3) bias itself, which has more sectors and is likely larger [est]. If the bias differs by Δ between E = 0.1 and
+0.05, the slope there moves by ln(1 + Δ)/ln 2; Δ = 6 % would move 2.86 by 0.08 [est, arithmetic only].
+
 ```
 python su2_blocks.py --E 0.1 --tmax 18000
 python ym_run.py --group su2 --E 0.3 0.1 --N 1100 --workers 22 --tmax 100000 --L0 --target-rel 0.005 --out results/su2_L0_check
-python su2_blocks_ensemble.py --E 0.1 --tmax 47000 --workers 22 > results/su2_blocks_L0check.txt
+python su2_blocks_ensemble.py --E 0.1 --tmax 47000 --workers 16 > results/su2_blocks_L0check.txt
 ```
 
 The `ym_run.py` line is reconstructed from the START line of `results/su2_L0_check/log.txt` (the run wrote to

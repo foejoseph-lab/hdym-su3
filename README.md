@@ -20,7 +20,8 @@ logs named in the note. Naive ghost operator ẅ = −(1 + Hess V)w throughout.
 - **The doublet block** is four copies of one 3 × 3 matrix M(q) = ¼ diag(y² + z², …) + ¾ [xy, …] [exact].
   `notes/NOTE_embedding_doublet.md`
 - **Pure Yang–Mills leaves the sector** at λ_esc = 0.1025 E^{1/4} (E = 1, 0.5, 0.3), and the escape is physical
-  (gauge mode removed). The doublet ghost is the weaker ghost: 0.44, 0.30, 0.25 of SU(2)'s. `notes/NOTE_embedding_doublet.md`
+  (gauge mode removed). The doublet ghost is the weaker ghost: 0.44, 0.30, 0.25 of SU(2)'s.
+  `notes/NOTE_embedding_doublet.md`
 - **SO(4)** = two decoupled SU(2) systems checks the group-general code: 14 checks pass. `notes/NOTE_so4.md`
 - **Full SU(3)**: λ_YM/E^{1/4} ∈ [0.26208, 0.26216] (generic L) and ∈ [0.27520, 0.27559] (L = 0); ghost local slopes at
   L = 0 1.85, 1.92, 2.59, 2.86, not final (full tangent); against SU(2) at L = 0 the ratio is 0.275 at E = 0.3 and 0.171
@@ -29,9 +30,9 @@ logs named in the note. Naive ghost operator ẅ = −(1 + Hess V)w throughout.
   0.05. `notes/NOTE_full_su3.md`, "Angular momentum"
 - **Isotropic orbits** reduce to one Lamé equation per Hessian eigen-family [exact]; the doublet is the only family
   along which pure Yang–Mills is unstable; the n = 1 windows need the exact operator. `notes/NOTE_lame_isotropic.md`
-- **A single full tangent measures the fastest sector**, biased upward, the bias fading like t^(−1/2). SU(2) at
-  E = 0.1: max over blocks / one block = 1.132 at t = 18,000; the full tangent is 10.4 % above hdym's GPU in λ_T and
-  5.1 % in λ_inc at t = 47,000. `notes/NOTE_single_tangent_bias.md`
+- **A single full tangent measures the fastest sector**, biased upward, the bias fading slowly. SU(2), L = 0,
+  E = 0.1, one ensemble of 1,100: at t = 47,000 the full tangent's λ_inc is 5.8 % ± 0.7 % above one sector's (λ_T
+  9.0 %). One sector agrees with hdym's GPU to about 1 %. `notes/NOTE_single_tangent_bias.md`
 
 ## Notes
 
@@ -41,7 +42,7 @@ logs named in the note. Naive ghost operator ẅ = −(1 + Hess V)w throughout.
 | `notes/NOTE_so4.md` | SO(4) as a should-match check | closed |
 | `notes/NOTE_full_su3.md` | the first scan (`su3_full.py`), the long runs (`ym_run.py`), angular momentum, the results table | runs done; slopes wait for the sector split |
 | `notes/NOTE_lame_isotropic.md` | the naive ghost on the two isotropic orbits as Lamé equations | done for the naive operator |
-| `notes/NOTE_single_tangent_bias.md` | the max-over-sectors bias of one tangent, measured on SU(2) | SU(3) sector split open; `su2_blocks_ensemble.py` run pending |
+| `notes/NOTE_single_tangent_bias.md` | the max-over-sectors bias of one tangent, measured on SU(2) | SU(2) calibrated on one ensemble (29 Oct); SU(3) sector split open |
 
 The notes were the sections of this README until 28 Oct 2026, moved unchanged; the history of their text before that
 date is in this file's git log.

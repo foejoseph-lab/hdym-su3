@@ -22,6 +22,10 @@ checkpoint beside it; the combined table goes to stdout (redirect it to results/
 per child. Cost: the 50-trajectory log took 2631 s to t = 18,000 on one core, slowing as it went (DOP853 steps
 are set by the stiffest trajectory in each batch); to t = 47,000 an estimate of 4-8 h per child with 22 running at
 once. Added 2026-10-28.
+
+29 Oct 2026: hdym's GPU value is an offset-free least-squares slope over the run's second half, so the last column
+compares one block's lam_inc with it (one_inc/gpu). The committed results/su2_blocks_L0check.txt predates that and
+prints one_T/gpu, which compares lam_T with the slope; notes/NOTE_single_tangent_bias.md has the matched comparison.
 """
 import argparse, os, subprocess, sys, time, warnings
 import numpy as np
@@ -139,7 +143,7 @@ print('# columns: one block = mean over the three off-diagonal blocks (what hdym
       '#          _T = L(t)/t, _inc = second-half increment as in ym_run.estimates; vec = vector ghost (lam_T)')
 hdr = (f"{'t':>7} {'one_T':>10} {'+-':>8} {'one_inc':>10} {'+-':>8} {'max3_T':>10} {'max3_inc':>10} "
        f"{'full_T':>10} {'full_inc':>10} {'+-':>8} {'full_T/max3_T':>13} {'full_inc/max3_inc':>17} {'vec_T':>10} "
-       f"{'one_T/gpu':>9}")
+       f"{'one_inc/gpu':>11}")
 print(hdr, flush=True)
 warnings.filterwarnings('ignore', category=RuntimeWarning)   # nan columns before a second-half window exists
 for k in range(1, nrep):
@@ -160,10 +164,10 @@ for k in range(1, nrep):
                 f"{fT.mean() / mxT.mean():13.4f} {np.nanmean(fI) / np.nanmean(mxI):17.4f} ")
     else:
         row += f"{'':>10} {'':>10} {'':>8} {'':>13} {'':>17} "
-    row += f"{vT.mean():10.4e} {oneT.mean() / a.gpu:9.4f}"
+    row += f"{vT.mean():10.4e} {np.nanmean(oneI) / a.gpu:11.4f}"
     print(row, flush=True)
 print(f'# gpu reference {a.gpu:.4e} is hdym\'s one block at t = 20,000 (ym/data/results_rung1/history_E0.1_cj0.npy); '
-      f'one_T/gpu is meaningful near that t only', flush=True)
+      f'(an offset-free slope); one_inc/gpu is meaningful near that t only', flush=True)
 if len(have) < len(SEEDS) and status == 'OK':
     status = f'PARTIAL({len(have)}/{len(SEEDS)})'
 print(f'# END su2_blocks_ensemble status={status} wall={time.time() - T0:.0f}s', flush=True)
