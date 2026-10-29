@@ -22,6 +22,12 @@ estimate (what a single full tangent measures), their ratio, and the vector ghos
 
     python su2_blocks.py --E 0.1 --tmax 18000 > results/su2_blocks.txt
 Single core, about 45 minutes at E = 0.1 (the committed log: wall 2631 s). Added 2026-10-27.
+
+Added 2026-10-28: --resume (a checkpoint in --out/ckpt/, rewritten at every report; the wall column then counts all
+sessions), --tag (appended to the output file names, default '' so the committed command writes what it wrote), and
+the per-report history of the cumulative logs (t_hist, logs_hist in the npz; t_hist[0] = 0) so that lam_inc can be
+formed as in ym_run.estimates. The arithmetic of the run is unchanged. su2_blocks_ensemble.py runs this script for
+ym_run's 22 worker seeds (seed + 1000 k), i.e. on all 1,100 initial conditions of results/su2_L0_check/.
 """
 import argparse, os, sys, time
 import numpy as np
@@ -40,9 +46,14 @@ ap.add_argument('--t-burn', type=float, default=100.0)
 ap.add_argument('--rtol', type=float, default=1e-10)
 ap.add_argument('--report', type=float, default=1000.0)
 ap.add_argument('--out', default=os.path.join('results', 'su2_blocks'))
+ap.add_argument('--tag', default='', help="appended to the npz and checkpoint names, e.g. _s1011")
+ap.add_argument('--resume', action='store_true', help='continue from the checkpoint in --out if there is one')
 a = ap.parse_args()
 T0 = time.time()
-print(f'# START su2_blocks E={a.E:g} N={a.N} seed={a.seed} tmax={a.tmax:g} t_burn={a.t_burn:g} rtol={a.rtol:g}', flush=True)
+KEY = dict(E=a.E, N=a.N, seed=a.seed, t_burn=a.t_burn, rtol=a.rtol, report=a.report)
+CK = os.path.join(a.out, 'ckpt', f'E{a.E:g}{a.tag}.npz')          # ckpt/ is git-ignored
+print(f'# START su2_blocks E={a.E:g} N={a.N} seed={a.seed} tmax={a.tmax:g} t_burn={a.t_burn:g} rtol={a.rtol:g}'
+      f' tag={a.tag!r} resume={a.resume}', flush=True)
 f2 = structure_constants('su2')
 m2 = ym_run.Model(f2)
 A, P = ym_run.initial_state(f2, a.N, a.E, a.seed, L0=True)
@@ -88,16 +99,28 @@ def unit(n):
     v = rng.standard_normal((N, n)); return v / np.linalg.norm(v, axis=1, keepdims=True)
 
 
-Y = np.concatenate([q0, p0, unit(6)] + [unit(4) for _ in BLOCKS], 1)
-Y = solve_ivp(rhs, (0, a.t_burn), Y.ravel(), rtol=a.rtol, atol=a.rtol * 1e-2, method='DOP853').y[:, -1].reshape(N, -1)
-Y[:, 6:12] = unit(6)
-for b in range(3):
-    Y[:, 12 + 4 * b:16 + 4 * b] = unit(4)
-E0 = energy(Y)
 SL = [slice(6, 12)] + [slice(12 + 4 * b, 16 + 4 * b) for b in range(3)]
-logs = np.zeros((N, 4))
-os.makedirs(a.out, exist_ok=True)
-t, dt, nextrep = 0.0, 20.0, a.report
+os.makedirs(os.path.join(a.out, 'ckpt'), exist_ok=True)
+dt = 20.0
+if a.resume and os.path.exists(CK):
+    c = np.load(CK, allow_pickle=False)
+    ck_key = {k: float(c['key_' + k]) for k in KEY}
+    if any(abs(ck_key[k] - float(v)) > 0 for k, v in KEY.items()):
+        raise SystemExit(f'checkpoint {CK} was made with {ck_key}, not {KEY}')
+    Y, E0, logs = c['Y'].copy(), c['E0'].copy(), c['logs'].copy()
+    t, nextrep, wall0 = float(c['t']), float(c['nextrep']), float(c['wall'])
+    t_hist, logs_hist = list(c['t_hist']), list(c['logs_hist'])
+    print(f'# resumed from {CK} at t={t:g} (wall so far {wall0:.0f}s)', flush=True)
+else:
+    Y = np.concatenate([q0, p0, unit(6)] + [unit(4) for _ in BLOCKS], 1)
+    Y = solve_ivp(rhs, (0, a.t_burn), Y.ravel(), rtol=a.rtol, atol=a.rtol * 1e-2, method='DOP853').y[:, -1].reshape(N, -1)
+    Y[:, 6:12] = unit(6)
+    for b in range(3):
+        Y[:, 12 + 4 * b:16 + 4 * b] = unit(4)
+    E0 = energy(Y)
+    logs = np.zeros((N, 4))
+    t, nextrep, wall0 = 0.0, a.report, 0.0
+    t_hist, logs_hist = [0.0], [logs.copy()]
 print(f"{'t':>7} {'block12':>10} {'block13':>10} {'block23':>10} {'one block':>10} {'+-':>8} {'max of 3':>10} "
       f"{'ratio':>6} {'vec':>10} {'max|dE|/E':>9} {'wall':>6}", flush=True)
 while t < a.tmax - 1e-9:
@@ -110,9 +133,17 @@ while t < a.tmax - 1e-9:
     if t >= nextrep - 1e-9:
         b = logs[:, 1:4] / t
         one, se, mx = b.mean(), b.mean(1).std() / np.sqrt(N), b.max(1).mean()
+        wall = wall0 + time.time() - T0
         print(f"{t:7.0f} {b[:, 0].mean():10.4e} {b[:, 1].mean():10.4e} {b[:, 2].mean():10.4e} {one:10.4e} {se:8.1e} "
               f"{mx:10.4e} {mx / one:6.3f} {logs[:, 0].mean() / t:10.4e} {np.abs(energy(Y) - E0).max() / a.E:9.1e} "
-              f"{time.time() - T0:6.0f}", flush=True)
-        np.savez(os.path.join(a.out, f'logs_E{a.E:g}.npz'), t=t, logs=logs, cols=np.array(['vec', 'b12', 'b13', 'b23']))
+              f"{wall:6.0f}", flush=True)
+        t_hist.append(t); logs_hist.append(logs.copy())
+        np.savez(os.path.join(a.out, f'logs_E{a.E:g}{a.tag}.npz'), t=t, logs=logs, cols=np.array(['vec', 'b12', 'b13', 'b23']),
+                 t_hist=np.array(t_hist), logs_hist=np.array(logs_hist), seed=a.seed, N=N, E=a.E,
+                 dE=energy(Y) - E0)
         nextrep += a.report
-print(f'# END su2_blocks status=OK wall={time.time() - T0:.0f}s', flush=True)
+        tmp = CK + '.tmp.npz'
+        np.savez(tmp, Y=Y, E0=E0, logs=logs, t=t, nextrep=nextrep, wall=wall, t_hist=np.array(t_hist),
+                 logs_hist=np.array(logs_hist), **{'key_' + k: float(v) for k, v in KEY.items()})
+        os.replace(tmp, CK)
+print(f'# END su2_blocks status=OK wall={wall0 + time.time() - T0:.0f}s', flush=True)
