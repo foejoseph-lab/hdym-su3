@@ -2,7 +2,7 @@
 
 Moved unchanged from `README.md` on 28 Oct 2026 (its history before that date is in `README.md`'s git log);
 only cross-references were updated, and the `results/su2_L0_check/` numbers were put in where the text
-said that run was not committed. Section "On one ensemble" added 29 Oct 2026. Paths and commands are relative to the
+said that run was not committed. Sections "On one ensemble" and "A large-deviation model" added 29 Oct 2026. Paths and commands are relative to the
 repository root. Conventions, including the claim notation and digits, are hdym's (its top-level `README.md`).
 
 ## A single full tangent measures the fastest sector, not one sector (`su2_blocks.py`)
@@ -126,7 +126,47 @@ too high, with three off-diagonal blocks and the vector ghost competing. That ca
 the SU(3) bias itself, which has more sectors and is likely larger [est]. If the bias differs by Δ between E = 0.1 and
 0.05, the slope there moves by ln(1 + Δ)/ln 2; Δ = 6 % would move 2.86 by 0.08 [est, arithmetic only].
 
+## A large-deviation model of the bias (`ld_bias.py`, 29 Oct 2026) [est]
+
+A model that explains the numbers above and predicts the SU(3) bias without the sector split. It reads committed
+results only (`results/ld_bias.txt`, seconds).
+
+**Model.** Each sector k of a trajectory has cumulative log L_k(t) = λt + b + √(Dt)·g_k, the g_k standard normal and
+correlated across sectors with ρ: the central-limit, quadratic-rate-function level of large-deviation theory. A single
+full tangent rides the fastest sector, so its log is max_k L_k(t). With e_n and v_n the mean and variance of the
+maximum of n such normals:
+- λ_T(full) − λ_T(one) = e_n √(D/t);
+- λ_inc(full) − λ_inc(one) = 2(1 − 1/√2) e_n √(D/t);
+- var L_full(t)/t = v_n D.
+
+The factor 2(1 − 1/√2) = 0.586 is the √t-offset ratio of "The decay to t = 47,000".
+
+**Tested on SU(2)** (L = 0, E = 0.1, the 1,100 trajectories above):
+- D = 1.70–1.86 × 10⁻³ for t = 5,000–47,000, nearly flat (diffusive); ρ = 0.00–0.13 between blocks.
+- "The full tangent's log is the maximum over sectors" holds. max_k L_k gives λ_inc within 0.3–1.2 % of the full
+  tangent's at every t (47,000: 1.6265 against 1.6222 × 10⁻³). The vector ghost never leads (0 of 1,100).
+- The Gaussian model gives the max-of-three λ_T within 0.1–0.3 % (47,000: 1.7199 against 1.7220 × 10⁻³).
+- At the stop it gives the λ_inc bias as 9.20 × 10⁻⁵ against the measured 8.94 × 10⁻⁵. From the full tangent alone,
+  with D = var L_full/(t v₃), the route open for SU(3), it gives 9.61 × 10⁻⁵.
+
+**Applied to SU(3)**, D from each run's full-tangent variance, ρ = 0.133, n = 2 … 8 competing sectors:
+- `run_L0`: predicted λ_inc bias 2.3–7.3 % at E = 0.3 and 2.8–8.9 % at E = 0.1 and 0.05.
+  - It is nearly the same at every E: the convergence stop fixes λt and the relative SEM, and with them √(D/t)/λ.
+  - So it cancels in the slopes: 0.1 → 0.05 stays 2.86 for every n, and 0.3 → 0.1 goes from 2.59 to 2.60.
+  - The SU(3)/SU(2) ratios carry the few per cent.
+  - The model's assumption holds there: var L/t is flat in t (E = 0.1: 2.96, 2.85, 2.99, 3.17 × 10⁻⁵ at t = 9,000 …
+    77,000; E = 0.05: 4.77 … 4.35 × 10⁻⁶).
+- `run_low` (generic L): **the model does not apply.** var L/t grows with t (E = 0.1: 6.9 → 24.5 × 10⁻⁵ from t = 8,000
+  to 69,000), because trajectories differ in their true rates (the |L| hidden parameter), so D is not a diffusion
+  constant. The 4–34 % the script prints for `run_low` are not predictions.
+
+**Reading.** If the model carries over to SU(3) at L = 0, the full-tangent bias moves the L = 0 absolute values by a
+few per cent and leaves the slopes. The sector split (Open) then confirms the L = 0 slopes and remains the measurement
+for generic L and the |L| figures. What would break it: SU(3) sectors with clearly unequal rates, or strong
+correlations between them. The judgement is the author's.
+
 ```
+python ld_bias.py > results/ld_bias.txt
 python su2_blocks.py --E 0.1 --tmax 18000
 python ym_run.py --group su2 --E 0.3 0.1 --N 1100 --workers 22 --tmax 100000 --L0 --target-rel 0.005 --out results/su2_L0_check
 python su2_blocks_ensemble.py --E 0.1 --tmax 47000 --workers 16 > results/su2_blocks_L0check.txt

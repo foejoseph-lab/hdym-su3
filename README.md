@@ -32,7 +32,8 @@ logs named in the note. Naive ghost operator ẅ = −(1 + Hess V)w throughout.
   along which pure Yang–Mills is unstable; the n = 1 windows need the exact operator. `notes/NOTE_lame_isotropic.md`
 - **A single full tangent measures the fastest sector**, biased upward, the bias fading slowly. SU(2), L = 0,
   E = 0.1, one ensemble of 1,100: at t = 47,000 the full tangent's λ_inc is 5.8 % ± 0.7 % above one sector's (λ_T
-  9.0 %). One sector agrees with hdym's GPU to about 1 %. `notes/NOTE_single_tangent_bias.md`
+  9.0 %). One sector agrees with hdym's GPU to about 1 %. A large-deviation model reproduces this and predicts a few-per-cent bias
+  for SU(3) at L = 0 that cancels in the slopes [est]. `notes/NOTE_single_tangent_bias.md`
 
 ## Notes
 
@@ -73,6 +74,7 @@ date is in this file's git log.
 | `ym_run.py` | **live engine**; the long-run engine: `su3_full.py`'s physics for `--group su2 / su3 / so4`, with checkpoint/`--resume`, the offset-free estimator λ_inc and a convergence stop; `--selftest` |
 | `su2_blocks.py` | **kept here by decision (28 Oct 2026)**: SU(2)-only, but it is the test of this repository's own `ym_run.py` that any later review needs; an exception to the placement rule (SU(2) work goes in hdym). SU(2) at L = 0 with an independent integrator (DOP853) and the naive ghost split by sector: one off-diagonal block vs the max over blocks that a single full tangent measures |
 | `su2_blocks_ensemble.py` | `su2_blocks.py` on all 1,100 initial conditions of `results/su2_L0_check/` (ym_run's 22 worker seeds), tabulated at matched t against that run's full tangent, λ_T and λ_inc; `--resume`, `--combine-only` (added 28 Oct 2026) |
+| `ld_bias.py` | the large-deviation model of the single-tangent bias: tested on the SU(2) sector logs, applied to `run_L0` / `run_low`; reads committed results only (added 29 Oct 2026) |
 | `lame_isotropic.py` | the naive ghost on SU(3)'s two isotropic orbits (λ = 1 isospin, λ = 1/2 real SO(3)) reduced to Lamé equations per Hessian eigen-family; windows, pure-YM limits, direct 24-d Floquet cross-check |
 | `L_correlation.py` | per-trajectory exponents against spatial angular momentum \|L\|, recomputed from a finished run's seeds (no rerun) |
 | `notes/` | the results in full, one note per topic (table above) |
